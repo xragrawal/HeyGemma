@@ -1,0 +1,12 @@
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/CMakeLists.txt
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/CMakeLists.txt
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/build-info.cmake
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/common.cmake
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/license.cmake
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/llama-config.cmake.in
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/CMakeLists.txt
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/cmake/common.cmake
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/cmake/ggml-config.cmake.in
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/src/CMakeLists.txt
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/src/ggml-cpu/CMakeLists.txt
+/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/src/CMakeLists.txt

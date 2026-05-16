@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Required to download models remotely -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        READ_EXTERNAL_STORAGE: needed on Android ≤ 12 to scan Downloads/models/
+        for auto-detect. The SAF file picker needs NO permission at all.
+    -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Android 13+: use scoped media permissions -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Record audio for Whisper speech-to-text -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!--
+        Vulkan is optional — the app still works (CPU inference) without it.
+    -->
+    <uses-feature android:name="android.hardware.vulkan.version"
+        android:version="0x00401000"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.vulkan.compute"
+        android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.GemmaApp"
+        android:largeHeap="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ModelPickerActivity"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

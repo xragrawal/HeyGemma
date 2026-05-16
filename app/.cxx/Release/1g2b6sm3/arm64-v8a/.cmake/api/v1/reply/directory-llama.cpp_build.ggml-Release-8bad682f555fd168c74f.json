@@ -1,0 +1,107 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"llama.cpp/ggml/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 347,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 348,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 416,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"bin/libggml.so"
+			],
+			"targetId" : "ggml::@d3a65483471855fe1d21",
+			"targetIndex" : 1,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"paths" : 
+			[
+				"llama.cpp/ggml/include/ggml.h",
+				"llama.cpp/ggml/include/ggml-cpu.h",
+				"llama.cpp/ggml/include/ggml-alloc.h",
+				"llama.cpp/ggml/include/ggml-backend.h",
+				"llama.cpp/ggml/include/ggml-blas.h",
+				"llama.cpp/ggml/include/ggml-cann.h",
+				"llama.cpp/ggml/include/ggml-cpp.h",
+				"llama.cpp/ggml/include/ggml-cuda.h",
+				"llama.cpp/ggml/include/ggml-opt.h",
+				"llama.cpp/ggml/include/ggml-metal.h",
+				"llama.cpp/ggml/include/ggml-rpc.h",
+				"llama.cpp/ggml/include/ggml-virtgpu.h",
+				"llama.cpp/ggml/include/ggml-sycl.h",
+				"llama.cpp/ggml/include/ggml-vulkan.h",
+				"llama.cpp/ggml/include/ggml-webgpu.h",
+				"llama.cpp/ggml/include/ggml-zendnn.h",
+				"llama.cpp/ggml/include/ggml-openvino.h",
+				"llama.cpp/ggml/include/gguf.h"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"bin/libggml-base.so"
+			],
+			"targetId" : "ggml-base::@d3a65483471855fe1d21",
+			"targetIndex" : 2,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/ggml",
+			"paths" : 
+			[
+				"/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/ggml-config.cmake",
+				"/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/ggml-version.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "llama.cpp_build/ggml",
+		"source" : "llama.cpp/ggml"
+	}
+}

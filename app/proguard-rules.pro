@@ -1,0 +1,1 @@
+-keep class com.example.gemmaapp.LlamaEngine { native <methods>; }

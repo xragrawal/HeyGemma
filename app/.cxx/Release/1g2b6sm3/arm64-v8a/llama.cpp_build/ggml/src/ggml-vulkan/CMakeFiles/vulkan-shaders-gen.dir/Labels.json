@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/CMakeFiles/vulkan-shaders-gen"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/CMakeFiles/vulkan-shaders-gen.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/CMakeFiles/vulkan-shaders-gen-complete.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-build.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-configure.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-download.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-install.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-mkdir.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-patch.rule"
+		},
+		{
+			"file" : "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/llama.cpp_build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"vulkan-shaders-gen"
+		],
+		"name" : "vulkan-shaders-gen"
+	}
+}

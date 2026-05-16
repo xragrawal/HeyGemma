@@ -1,0 +1,94 @@
+{
+  "buildFiles": [
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/CMakeLists.txt",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/CMakeLists.txt",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/build-info.cmake",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/common.cmake",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/license.cmake",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/cmake/llama-config.cmake.in",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/CMakeLists.txt",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/cmake/common.cmake",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/cmake/ggml-config.cmake.in",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/src/CMakeLists.txt",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/src/ggml-cpu/CMakeLists.txt",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/src/ggml-vulkan/CMakeLists.txt",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/ggml/src/ggml-vulkan/cmake/host-toolchain.cmake.in",
+    "/Users/jayeshshete/Documents/build/mobile/app/src/main/cpp/llama.cpp/src/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/jayeshshete/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/jayeshshete/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "llama::@32fb59a8474f4dfc8d79": {
+      "artifactName": "llama",
+      "abi": "arm64-v8a",
+      "output": "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libllama.so",
+      "runtimeFiles": [
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-cpu.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-vulkan.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-base.so"
+      ]
+    },
+    "gemma_jni::@6890427a1f51a3e7e1df": {
+      "artifactName": "gemma_jni",
+      "abi": "arm64-v8a",
+      "output": "/Users/jayeshshete/Documents/build/mobile/app/build/intermediates/cxx/Release/1g2b6sm3/obj/arm64-v8a/libgemma_jni.so",
+      "runtimeFiles": [
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libllama.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-cpu.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-vulkan.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-base.so"
+      ]
+    },
+    "ggml-vulkan::@2c6ee7bfcda831e384d2": {
+      "artifactName": "ggml-vulkan",
+      "abi": "arm64-v8a",
+      "output": "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-vulkan.so",
+      "runtimeFiles": [
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-base.so"
+      ]
+    },
+    "vulkan-shaders-gen::@2c6ee7bfcda831e384d2": {
+      "artifactName": "vulkan-shaders-gen",
+      "abi": "arm64-v8a",
+      "runtimeFiles": []
+    },
+    "ggml::@d3a65483471855fe1d21": {
+      "artifactName": "ggml",
+      "abi": "arm64-v8a",
+      "output": "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml.so",
+      "runtimeFiles": [
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-cpu.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-vulkan.so",
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-base.so"
+      ]
+    },
+    "ggml-cpu::@d3a65483471855fe1d21": {
+      "artifactName": "ggml-cpu",
+      "abi": "arm64-v8a",
+      "output": "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-cpu.so",
+      "runtimeFiles": [
+        "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-base.so"
+      ]
+    },
+    "ggml-base::@d3a65483471855fe1d21": {
+      "artifactName": "ggml-base",
+      "abi": "arm64-v8a",
+      "output": "/Users/jayeshshete/Documents/build/mobile/app/.cxx/Release/1g2b6sm3/arm64-v8a/bin/libggml-base.so",
+      "runtimeFiles": []
+    }
+  }
+}
