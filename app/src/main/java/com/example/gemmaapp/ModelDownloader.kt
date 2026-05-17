@@ -26,13 +26,24 @@ object ModelDownloader {
             val response = client.newCall(request).execute()
 
             if (!response.isSuccessful) {
-                return@withContext Result.failure(Exception("Failed to download file: ${response.code}"))
+                response.close() // prevent connection leak
+                return@withContext Result.failure(
+                    Exception("HTTP ${response.code} ${response.message}")
+                )
             }
 
-            val body = response.body ?: return@withContext Result.failure(Exception("Empty response body"))
+            val body = response.body ?: run {
+                response.close()
+                return@withContext Result.failure(Exception("Empty response body"))
+            }
             val contentLength = body.contentLength()
             val inputStream = body.byteStream()
             val outputStream = FileOutputStream(destination)
+
+            // -1 signals indeterminate to the caller (server didn't send Content-Length)
+            if (contentLength <= 0) {
+                withContext(Dispatchers.Main) { onProgress(-1) }
+            }
 
             val buffer = ByteArray(8 * 1024)
             var bytesCopied: Long = 0

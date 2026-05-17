@@ -57,7 +57,7 @@ class ModelPickerActivity : AppCompatActivity() {
     private var detectedWhisperPath: String? = null
     private var detectedVoskPath: String? = null
     
-    private val gemmaDownloadUrl = "https://huggingface.co/bartowski/google_gemma-4-2b-it-GGUF/resolve/main/gemma-4-2b-it-Q4_K_M.gguf?download=true"
+    private val gemmaDownloadUrl = "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf?download=true"
     
     private val whisperUrls = mapOf(
         "encoder_model_quantized.onnx" to "https://huggingface.co/onnx-community/whisper-small/resolve/main/onnx/encoder_model_quantized.onnx?download=true",
@@ -65,7 +65,7 @@ class ModelPickerActivity : AppCompatActivity() {
         "tokenizer.json" to "https://huggingface.co/onnx-community/whisper-small/resolve/main/tokenizer.json?download=true"
     )
 
-    private val voskDownloadUrl = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+    private val voskDownloadUrl = "https://huggingface.co/rhasspy/vosk-models/resolve/main/en/vosk-model-small-en-us-0.15.zip?download=true"
 
     // ── File picker (SAF) ─────────────────────────────────────────────────────
 
@@ -233,20 +233,20 @@ class ModelPickerActivity : AppCompatActivity() {
     }
     
     private fun downloadGemma() {
-        val destFile = File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "gemma-4-2b-it-Q4_K_M.gguf")
-        if (destFile.exists() && destFile.length() > 1_000_000_000L) {
+        val destFile = File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "gemma-4-E2B-it-Q4_K_M.gguf")
+        if (destFile.exists() && destFile.length() > 2_000_000_000L) {
             Toast.makeText(this, "Gemma model already downloaded", Toast.LENGTH_SHORT).show()
             refreshAutoDetect()
             return
         }
         
         setDownloadUiActive(true)
-        tvProgressLabel.text = "Downloading Gemma (1.5GB)... Please keep app open."
+        tvProgressLabel.text = "Downloading Gemma (3.1GB)... Please keep app open."
         progressBar.progress = 0
         
         lifecycleScope.launch {
             val result = ModelDownloader.downloadFile(gemmaDownloadUrl, destFile) { progress ->
-                progressBar.progress = progress
+                if (progress == -1) { progressBar.isIndeterminate = true } else { progressBar.isIndeterminate = false; progressBar.progress = progress }
             }
             
             setDownloadUiActive(false)
@@ -278,7 +278,7 @@ class ModelPickerActivity : AppCompatActivity() {
                 
                 val destFile = File(whisperDir, filename)
                 val result = ModelDownloader.downloadFile(url, destFile) { progress ->
-                    progressBar.progress = progress
+                    if (progress == -1) { progressBar.isIndeterminate = true } else { progressBar.isIndeterminate = false; progressBar.progress = progress }
                 }
                 
                 if (result.isFailure) {
@@ -306,7 +306,7 @@ class ModelPickerActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             val result = ModelDownloader.downloadFile(voskDownloadUrl, zipFile) { progress ->
-                progressBar.progress = progress
+                if (progress == -1) { progressBar.isIndeterminate = true } else { progressBar.isIndeterminate = false; progressBar.progress = progress }
             }
             
             if (result.isSuccess) {
