@@ -13,8 +13,9 @@ import org.vosk.Recognizer
 import java.io.File
 
 object WakeWordEngine {
-    private const val TAG = "WakeWordEngine"
-    private const val SAMPLE_RATE = 16000
+    private const val TAG                = "WakeWordEngine"
+    private const val SAMPLE_RATE        = 16000
+    private const val EMERGENCY_WINDOW_MS = 8_000L   // rolling window for repeat counting
 
     private var model: Model? = null
 
@@ -25,7 +26,14 @@ object WakeWordEngine {
     private var audioRecord: AudioRecord? = null
     private var listenThread: Thread? = null
 
-    // ── Load ─────────────────────────────────────────────────────────────────
+    // Stored callbacks — set on each startListening call
+    private var wakeWordCallback: ((String) -> Unit)? = null
+    private var countCallback: ((current: Int, required: Int) -> Unit)? = null
+
+    // Timestamps of each emergency keyword detection within the rolling window
+    private val emergencyTimestamps = mutableListOf<Long>()
+
+    // ── Load ──────────────────────────────────────────────────────────────────
 
     suspend fun load(modelPath: String): String? = withContext(Dispatchers.IO) {
         Log.i(TAG, "load() called with: $modelPath")
@@ -49,15 +57,26 @@ object WakeWordEngine {
 
     // ── Listen ────────────────────────────────────────────────────────────────
 
+    /**
+     * @param onWakeWordDetected  Called with "hey gemma" or "emergency" when triggered.
+     * @param onEmergencyCount    Called on every emergency keyword hit with (current, required)
+     *                            so the UI can show haptic / progress feedback before firing.
+     */
     @SuppressLint("MissingPermission")
-    fun startListening(onWakeWordDetected: (String) -> Unit): Boolean {
-        Log.i(TAG, "startListening() called. isLoaded=$isLoaded, isListening=$isListening, model=${model != null}")
+    fun startListening(
+        onWakeWordDetected: (String) -> Unit,
+        onEmergencyCount: (current: Int, required: Int) -> Unit = { _, _ -> }
+    ): Boolean {
+        Log.i(TAG, "startListening() isLoaded=$isLoaded isListening=$isListening model=${model != null}")
 
         if (!isLoaded) { Log.e(TAG, "Vosk model not loaded yet"); return false }
         if (isListening) { Log.w(TAG, "Already listening, skipping"); return true }
         if (model == null) { Log.e(TAG, "Model is null"); return false }
 
-        // Create a fresh recognizer for each session
+        wakeWordCallback = onWakeWordDetected
+        countCallback    = onEmergencyCount
+        synchronized(emergencyTimestamps) { emergencyTimestamps.clear() }
+
         val recognizer = try {
             Recognizer(model, SAMPLE_RATE.toFloat()).also {
                 Log.i(TAG, "Recognizer created OK")
@@ -70,7 +89,6 @@ object WakeWordEngine {
         val minBuf = AudioRecord.getMinBufferSize(
             SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT
         )
-        Log.i(TAG, "Min buffer size: $minBuf bytes")
 
         val record = AudioRecord(
             MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -80,7 +98,7 @@ object WakeWordEngine {
             maxOf(minBuf * 4, 8192)
         )
 
-        Log.i(TAG, "AudioRecord state=${record.state} (1=INITIALIZED)")
+        Log.i(TAG, "AudioRecord state=${record.state}")
         if (record.state != AudioRecord.STATE_INITIALIZED) {
             Log.e(TAG, "AudioRecord NOT initialized – permission denied or hw busy")
             record.release()
@@ -89,9 +107,9 @@ object WakeWordEngine {
         }
 
         audioRecord = record
-        isListening = true
+        isListening  = true
         record.startRecording()
-        Log.i(TAG, "AudioRecord.startRecording() called. recordingState=${record.recordingState} (3=RECORDING)")
+        Log.i(TAG, "AudioRecord.startRecording() recordingState=${record.recordingState}")
 
         listenThread = Thread({
             Log.i(TAG, "Listen thread started")
@@ -101,17 +119,14 @@ object WakeWordEngine {
                 val read = record.read(buffer, 0, buffer.size)
                 if (read > 0) {
                     frameCount++
-                    if (frameCount % 50 == 0) Log.d(TAG, "Read $frameCount frames, last=$read samples")
+                    if (frameCount % 50 == 0) Log.d(TAG, "Frames=$frameCount")
                     if (recognizer.acceptWaveForm(buffer, read)) {
-                        val result = recognizer.result
-                        Log.d(TAG, "Final result: $result")
-                        checkResult(result, onWakeWordDetected)
+                        checkResult(recognizer.result)
                     } else {
-                        val partial = recognizer.partialResult
-                        checkResult(partial, onWakeWordDetected)
+                        checkResult(recognizer.partialResult)
                     }
                 } else {
-                    Log.w(TAG, "AudioRecord.read returned $read – possible error")
+                    Log.w(TAG, "AudioRecord.read returned $read")
                 }
             }
             Log.i(TAG, "Listen thread exiting after $frameCount frames")
@@ -125,9 +140,9 @@ object WakeWordEngine {
 
     // ── Check result ──────────────────────────────────────────────────────────
 
-    private fun checkResult(jsonStr: String, onWakeWordDetected: (String) -> Unit) {
+    private fun checkResult(jsonStr: String) {
         try {
-            val json = JSONObject(jsonStr)
+            val json    = JSONObject(jsonStr)
             val text    = json.optString("text",    "").lowercase().trim()
             val partial = json.optString("partial", "").lowercase().trim()
             val content = if (text.isNotBlank()) text else partial
@@ -135,20 +150,42 @@ object WakeWordEngine {
 
             Log.d(TAG, "Vosk heard: [$content]")
 
+            // ── Emergency keyword: dynamic + rolling time-window counter ──────
+            val keyword  = ProfilePrefs.emergencyKeyword      // e.g. "help"
+            val required = ProfilePrefs.emergencyRepeatCount  // default 3
+
+            if (content.contains(keyword)) {
+                val now = System.currentTimeMillis()
+                synchronized(emergencyTimestamps) {
+                    emergencyTimestamps.add(now)
+                    emergencyTimestamps.removeAll { now - it > EMERGENCY_WINDOW_MS }
+                    val count = emergencyTimestamps.size
+                    Log.i(TAG, "Emergency keyword '$keyword' hit [$count/$required] in window")
+                    countCallback?.invoke(count, required)
+
+                    if (count >= required) {
+                        Log.i(TAG, "★ EMERGENCY TRIGGERED [$count/$required]")
+                        emergencyTimestamps.clear()
+                        stopListening()
+                        wakeWordCallback?.invoke("emergency")
+                    }
+                }
+                return  // don't also check Gemma wake word in the same frame
+            }
+
+            // ── Gemma wake word ───────────────────────────────────────────────
             val isGemma = content.contains("hey gemma") ||
                           content.contains("hey jemma") ||
                           content.contains("hey emma")  ||
                           content.contains("hey jem")   ||
                           content.contains("hey jama")  ||
                           content.contains("a gemma")   ||
-                          content.contains("gemma")      // broad fallback
+                          content.contains("gemma")
 
-            val isEmergency = content.contains("emergency emergency emergency") ||
-                              content.contains("emergency emergency")
-
-            when {
-                isGemma     -> { Log.i(TAG, "★ Wake word HEY GEMMA detected!"); stopListening(); onWakeWordDetected("hey gemma") }
-                isEmergency -> { Log.i(TAG, "★ Wake word EMERGENCY detected!"); stopListening(); onWakeWordDetected("emergency") }
+            if (isGemma) {
+                Log.i(TAG, "★ Wake word HEY GEMMA detected!")
+                stopListening()
+                wakeWordCallback?.invoke("hey gemma")
             }
         } catch (_: Exception) {}
     }
@@ -158,6 +195,7 @@ object WakeWordEngine {
     fun stopListening() {
         Log.i(TAG, "stopListening() called. isListening=$isListening")
         isListening = false
+        synchronized(emergencyTimestamps) { emergencyTimestamps.clear() }
         try { audioRecord?.stop(); audioRecord?.release() } catch (_: Exception) {}
         audioRecord = null
         listenThread?.interrupt()
@@ -168,6 +206,8 @@ object WakeWordEngine {
         stopListening()
         model?.close(); model = null
         isLoaded = false
+        wakeWordCallback = null
+        countCallback    = null
         Log.i(TAG, "WakeWordEngine released")
     }
 }

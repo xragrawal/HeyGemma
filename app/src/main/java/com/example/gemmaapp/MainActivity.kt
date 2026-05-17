@@ -53,11 +53,28 @@ class MainActivity : AppCompatActivity() {
     private var currentScreen = AppScreen.HOME
     private val resultHandler = Handler(Looper.getMainLooper())
     private var resultDismissRunnable: Runnable? = null
+    private var isFirstRunProfile = false
 
     private var waveAnimators = listOf<ObjectAnimator>()
     private var elapsedSeconds = 0
     private val timerHandler = Handler(Looper.getMainLooper())
     private var timerRunnable: Runnable? = null
+
+    private val profileLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        updateDateGreeting()
+        if (isFirstRunProfile) {
+            // First-run path: proceed to model picker after onboarding
+            isFirstRunProfile = false
+            if (vm.loadState.value == LoadState.Idle) {
+                pickModel.launch(Intent(this, ModelPickerActivity::class.java))
+            } else {
+                checkPermissions()
+            }
+        }
+        // Settings-edit path: just refresh greeting and return to home — no model picker
+    }
 
     private val pickModel = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -100,12 +117,14 @@ class MainActivity : AppCompatActivity() {
         setupResultScreen()
         observeViewModel()
 
-        // Initial screen state
         showScreen(AppScreen.HOME)
-
         updateDateGreeting()
 
-        if (vm.loadState.value == LoadState.Idle) {
+        // First-run: send to profile setup before model picker
+        if (!ProfilePrefs.onboardingComplete) {
+            isFirstRunProfile = true
+            profileLauncher.launch(Intent(this, UserProfileActivity::class.java))
+        } else if (vm.loadState.value == LoadState.Idle) {
             pickModel.launch(Intent(this, ModelPickerActivity::class.java))
         } else {
             checkPermissions()
@@ -135,6 +154,11 @@ class MainActivity : AppCompatActivity() {
             } else {
                 requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
+        }
+
+        // Settings / profile icon
+        homeBinding.btnProfile.setOnClickListener {
+            profileLauncher.launch(Intent(this, UserProfileActivity::class.java))
         }
 
         // Telegram tile
@@ -248,8 +272,9 @@ class MainActivity : AppCompatActivity() {
             hour < 17 -> "afternoon"
             else -> "evening"
         }
-        homeBinding.tvGreeting.text = "Good $timeOfDay,\nJayesh."
-        // Make "Jayesh." italic via SpannableString
+        val displayName = ProfilePrefs.userName.ifBlank { "there" }
+        homeBinding.tvGreeting.text = "Good $timeOfDay,\n$displayName."
+        // Make name italic + lime via SpannableString
         val greetText = homeBinding.tvGreeting.text.toString()
         val spannable = android.text.SpannableString(greetText)
         val nameStart = greetText.lastIndexOf('\n') + 1

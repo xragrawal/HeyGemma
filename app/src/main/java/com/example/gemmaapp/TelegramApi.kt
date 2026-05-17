@@ -59,6 +59,26 @@ object TelegramApi {
             }.also { if (it.isFailure) Log.e(TAG, "getMe error", it.exceptionOrNull()) }
         }
 
+    // ── Resolve @username or numeric id → chat id ────────────────────────────
+
+    suspend fun getChat(token: String, usernameOrId: String): Result<Long> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val chatParam = usernameOrId.trim()
+                val request = Request.Builder()
+                    .url("$BASE$token/getChat?chat_id=${chatParam}")
+                    .build()
+                val body = client.newCall(request).execute().use { it.body?.string() ?: "" }
+                Log.d(TAG, "getChat response: $body")
+                val root = JSONObject(body)
+                if (!root.optBoolean("ok")) {
+                    val desc = root.optString("description", "User not found")
+                    error(desc)
+                }
+                root.getJSONObject("result").getLong("id")
+            }.also { if (it.isFailure) Log.e(TAG, "getChat error", it.exceptionOrNull()) }
+        }
+
     // ── Send a message ────────────────────────────────────────────────────────
 
     suspend fun sendMessage(token: String, chatId: Long, text: String): Result<Unit> =

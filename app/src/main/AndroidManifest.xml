@@ -18,6 +18,10 @@
     <!-- Record audio for Whisper speech-to-text -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Location for emergency alert GPS coordinates -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!--
         Vulkan is optional — the app still works (CPU inference) without it.
     -->
@@ -77,6 +81,12 @@
             android:name=".ElevenLabsActivity"
             android:exported="false"
             android:label="ElevenLabs TTS" />
+
+        <activity
+            android:name=".UserProfileActivity"
+            android:exported="false"
+            android:label="Profile"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 

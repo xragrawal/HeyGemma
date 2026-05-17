@@ -259,6 +259,21 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Settings icon — top-right overlay -->
+    <TextView
+        android:id="@+id/btnProfile"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:text="⚙"
+        android:textSize="20sp"
+        android:textColor="@color/gemma_ink_mute"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true" />
+
     <!-- Bottom dock with gradient fade -->
     <FrameLayout
         android:layout_width="match_parent"

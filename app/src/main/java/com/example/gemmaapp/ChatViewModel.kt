@@ -1,6 +1,14 @@
 package com.example.gemmaapp
 
 import android.app.Application
+import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +31,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         TodoRepository.init(app)
         viewModelScope.launch { TelegramRepository.init(app) }
         TtsManager.init(app)
+        ProfilePrefs.init(app)
     }
 
     private val _messages    = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -98,15 +107,52 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun startWakeWordListening() {
         if (_voskState.value !is LoadState.Ready) return
-        if (_isRecording.value) return // Don't listen if currently recording
-        
-        val success = WakeWordEngine.startListening { wakeWord ->
-            _isListeningForWakeWord.value = false
-            // Wake word detected, trigger recording
-            startRecording()
-        }
-        
+        if (_isRecording.value) return
+
+        val success = WakeWordEngine.startListening(
+            onWakeWordDetected = { wakeWord ->
+                _isListeningForWakeWord.value = false
+                if (wakeWord == "emergency") {
+                    viewModelScope.launch {
+                        EmergencyManager.sendAlert(getApplication())
+                    }
+                    startWakeWordListening()
+                } else {
+                    startRecording()
+                }
+            },
+            onEmergencyCount = { current, required ->
+                triggerEmergencyCountFeedback(current, required)
+            }
+        )
+
         _isListeningForWakeWord.value = success
+    }
+
+    private fun triggerEmergencyCountFeedback(current: Int, required: Int) {
+        val context = getApplication<Application>()
+        Handler(Looper.getMainLooper()).post {
+            // Single haptic pulse per detection
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+                    .defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            }
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(150L, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
+
+            // Toast only for intermediate counts (final trigger shows delivery toast instead)
+            if (current < required) {
+                Toast.makeText(
+                    context,
+                    "🆘 $current/$required — keep going!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     fun stopWakeWordListening() {
