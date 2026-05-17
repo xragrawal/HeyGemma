@@ -45,6 +45,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val _loadState   = MutableStateFlow<LoadState>(LoadState.Idle)
     val loadState: StateFlow<LoadState> = _loadState.asStateFlow()
 
+    private val _currentTranscript = MutableStateFlow("")
+    val currentTranscript: StateFlow<String> = _currentTranscript.asStateFlow()
+
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
 
@@ -184,10 +187,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (pcmData.isNotEmpty()) {
                 val transcript = WhisperEngine.transcribe(pcmData)
                 if (!transcript.isNullOrBlank()) {
-                    // Auto-send to Gemma
+                    _currentTranscript.value = transcript
                     sendMessage(transcript)
                 } else {
-                    // Start listening again if transcription failed/empty
                     startWakeWordListening()
                 }
             } else {

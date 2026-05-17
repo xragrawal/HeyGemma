@@ -202,6 +202,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
+            vm.currentTranscript.collectLatest { text ->
+                val words = text.trim().split("\\s+".toRegex()).filter { it.isNotBlank() }
+                val preview = words.take(10).joinToString(" ")
+                val display = if (words.size > 10) "$preview…" else preview
+                processingBinding.tvProcessTranscript.text =
+                    if (display.isBlank()) "\"…\"" else "\"$display\""
+            }
+        }
+
+        lifecycleScope.launch {
             vm.isGenerating.collectLatest { generating ->
                 if (generating && currentScreen != AppScreen.PROCESSING) {
                     showScreen(AppScreen.PROCESSING)
