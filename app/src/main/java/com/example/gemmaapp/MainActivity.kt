@@ -1,6 +1,7 @@
 package com.example.gemmaapp
 
 import android.app.Activity
+import android.content.res.ColorStateList
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -126,6 +127,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
+            vm.activeAgent.collectLatest { agent ->
+                if (agent != null) {
+                    setStatus("${agent.label} agent")
+                } else if (vm.loadState.value == LoadState.Ready) {
+                    setStatus("Ready")
+                }
+            }
+        }
+
+        lifecycleScope.launch {
             vm.whisperState.collectLatest { state ->
                 binding.btnMic.isEnabled = state == LoadState.Ready
                 if (state is LoadState.Error) {
@@ -146,10 +157,10 @@ class MainActivity : AppCompatActivity() {
             vm.isListeningForWakeWord.collectLatest { listening ->
                 if (listening && !vm.isRecording.value) {
                     binding.etInput.hint = "Listening for 'Hey Gemma'..."
-                    binding.btnMic.setIconTintResource(android.R.color.holo_blue_dark)
+                    setMicTint(MicTint.LISTENING)
                 } else if (!vm.isRecording.value) {
                     binding.etInput.hint = "Type a message..."
-                    binding.btnMic.setIconTintResource(android.R.color.black)
+                    setMicTint(MicTint.DEFAULT)
                 }
             }
         }
@@ -157,13 +168,13 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             vm.isRecording.collectLatest { recording ->
                 if (recording) {
-                    binding.btnMic.setIconTintResource(android.R.color.holo_red_dark)
+                    setMicTint(MicTint.RECORDING)
                     binding.etInput.hint = "Recording... (speak now)"
                 } else if (vm.isListeningForWakeWord.value) {
-                    binding.btnMic.setIconTintResource(android.R.color.holo_blue_dark)
+                    setMicTint(MicTint.LISTENING)
                     binding.etInput.hint = "Listening for 'Hey Gemma'..."
                 } else {
-                    binding.btnMic.setIconTintResource(android.R.color.black)
+                    setMicTint(MicTint.DEFAULT)
                     binding.etInput.hint = "Type a message..."
                 }
             }
@@ -199,14 +210,27 @@ class MainActivity : AppCompatActivity() {
         pickModel.launch(Intent(this, ModelPickerActivity::class.java))
     }
 
+    private enum class MicTint { DEFAULT, LISTENING, RECORDING }
+
+    private fun setMicTint(tint: MicTint) {
+        val color = when (tint) {
+            MicTint.DEFAULT   -> getColor(android.R.color.darker_gray)
+            MicTint.LISTENING -> getColor(android.R.color.holo_blue_dark)
+            MicTint.RECORDING -> getColor(android.R.color.holo_red_dark)
+        }
+        binding.btnMic.iconTint = ColorStateList.valueOf(color)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_load_model -> { launchModelPicker(); true }
-        R.id.action_clear_chat -> { vm.clearChat(); true }
+        R.id.action_load_model  -> { launchModelPicker(); true }
+        R.id.action_view_todos  -> { startActivity(Intent(this, TodosActivity::class.java)); true }
+        R.id.action_telegram    -> { startActivity(Intent(this, TelegramActivity::class.java)); true }
+        R.id.action_clear_chat  -> { vm.clearChat(); true }
         else -> super.onOptionsItemSelected(item)
     }
 }

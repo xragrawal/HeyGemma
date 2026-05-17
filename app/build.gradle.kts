@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -83,4 +84,7 @@ dependencies {
     implementation(libs.onnxruntime.android)   // Whisper ONNX inference
     implementation("${libs.jna.get().module}:${libs.jna.get().version}@aar")
     implementation("${libs.vosk.android.get().module}:${libs.vosk.android.get().version}@aar")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 }

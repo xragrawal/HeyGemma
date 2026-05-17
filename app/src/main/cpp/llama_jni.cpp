@@ -141,6 +141,16 @@ Java_com_example_gemmaapp_LlamaEngine_nativeGenerate(
     llama_sampler_chain_add(smpl, llama_sampler_init_top_p(topP, 1));
     llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
 
+    // Resolve Gemma's <end_of_turn> token ID — this is the per-turn stop token and
+    // is distinct from EOS, so llama_vocab_is_eog() alone does not catch it.
+    std::string eot_str = "<end_of_turn>";
+    std::vector<llama_token> eot_buf(8);
+    int n_eot = llama_tokenize(vocab, eot_str.c_str(), (int)eot_str.size(),
+                               eot_buf.data(), (int)eot_buf.size(),
+                               /*add_special=*/false, /*parse_special=*/true);
+    llama_token eot_id = (n_eot == 1) ? eot_buf[0] : LLAMA_TOKEN_NULL;
+    LOGI("eot_id=%d (n_eot=%d)", eot_id, n_eot);
+
     // JNI callback method
     jclass   cbClass  = env->GetObjectClass(tokenCallback);
     jmethodID onToken = env->GetMethodID(cbClass, "invoke",
@@ -153,6 +163,7 @@ Java_com_example_gemmaapp_LlamaEngine_nativeGenerate(
         llama_token token_id = llama_sampler_sample(smpl, ctx, -1);
 
         if (llama_vocab_is_eog(vocab, token_id)) break;
+        if (eot_id != LLAMA_TOKEN_NULL && token_id == eot_id) break;
 
         char piece[256];
         int  n = llama_token_to_piece(vocab, token_id, piece, sizeof(piece), 0, false);

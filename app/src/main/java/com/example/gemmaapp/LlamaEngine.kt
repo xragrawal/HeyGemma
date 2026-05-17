@@ -80,6 +80,7 @@ object LlamaEngine {
      */
     fun buildGemmaPrompt(history: List<ChatMessage>): String = buildString {
         for (msg in history) {
+            if (msg.isAgentNote) continue          // routing notes are UI-only, never feed to model
             val role = if (msg.isUser) "user" else "model"
             append("<start_of_turn>$role\n${msg.text}<end_of_turn>\n")
         }

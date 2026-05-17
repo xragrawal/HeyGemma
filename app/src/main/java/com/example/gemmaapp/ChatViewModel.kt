@@ -3,6 +3,7 @@ package com.example.gemmaapp
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,8 +19,18 @@ sealed class LoadState {
 
 class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
+    init {
+        TodoRepository.init(app)
+        viewModelScope.launch { TelegramRepository.init(app) }
+    }
+
     private val _messages    = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
+
+    val todos: Flow<List<TodoEntity>> get() = TodoRepository.todos
+
+    private val _activeAgent = MutableStateFlow<AgentType?>(null)
+    val activeAgent: StateFlow<AgentType?> = _activeAgent.asStateFlow()
 
     private val _loadState   = MutableStateFlow<LoadState>(LoadState.Idle)
     val loadState: StateFlow<LoadState> = _loadState.asStateFlow()
@@ -143,33 +154,49 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
         viewModelScope.launch {
             val history = _messages.value.filter { !it.isStreaming }
-            val prompt  = LlamaEngine.buildGemmaPrompt(history)
 
-            var accumulated = ""
-
-            val err = LlamaEngine.generate(
-                prompt = prompt,
-                maxTokens = 1024,
-                temperature = 0.7f,
-                topP = 0.9f
-            ) { piece ->
-                accumulated += piece
-                val updated = accumulated
-                // Replace the streaming placeholder in-place
-                _messages.update { msgs ->
-                    msgs.dropLast(1) + ChatMessage(updated, isUser = false, isStreaming = true)
+            val result = AgentOrchestrator.process(
+                userMessage  = userText,
+                chatHistory  = history,
+                onClassified = { classified, agentType ->
+                    _activeAgent.value = agentType
+                    val noteText = buildRoutingNote(classified, agentType)
+                    // Insert routing note; remove the blank streaming placeholder first, re-add after
+                    _messages.update { msgs ->
+                        val placeholder = msgs.last()
+                        msgs.dropLast(1) +
+                            ChatMessage(noteText, isUser = false, isAgentNote = true) +
+                            placeholder
+                    }
+                },
+                onToken = { piece ->
+                    _messages.update { msgs ->
+                        val current = (msgs.lastOrNull()?.text ?: "") + piece
+                        msgs.dropLast(1) + ChatMessage(current, isUser = false, isStreaming = true)
+                    }
                 }
-            }
+            )
 
-            // Finalise: mark no longer streaming
             _messages.update { msgs ->
-                val finalText = if (err != null) "Error: $err" else accumulated
-                msgs.dropLast(1) + ChatMessage(finalText, isUser = false, isStreaming = false)
+                val finalText = if (result.error != null) "Error: ${result.error}" else result.displayText
+                msgs.dropLast(1) + ChatMessage(finalText, isUser = false, isStreaming = false, agentType = result.agentType)
             }
+            _activeAgent.value = null
             _isGenerating.value = false
-            
-            // Resume listening for the next wake word
+
             startWakeWordListening()
+        }
+    }
+
+    private fun buildRoutingNote(
+        classified: AgentOrchestrator.ClassifierResult,
+        agentType: AgentType
+    ): String = buildString {
+        append("Classifier → ${agentType.label} Agent")
+        if (classified.task.isNotBlank() && classified.task != "ANSWER") {
+            append(" · ${classified.task}")
+            if (classified.recipient.isNotBlank()) append(" → ${classified.recipient}")
+            if (classified.content.isNotBlank()) append(": \"${classified.content}\"")
         }
     }
 

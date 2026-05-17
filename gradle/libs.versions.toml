@@ -1,6 +1,8 @@
 [versions]
 agp = "8.5.2"
 kotlin = "2.0.21"
+ksp = "2.0.21-1.0.28"
+room = "2.6.1"
 coreKtx = "1.13.1"
 appcompat = "1.7.0"
 material = "1.12.0"
@@ -24,7 +26,11 @@ activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
 jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 vosk-android = { group = "com.alphacephei", name = "vosk-android", version.ref = "vosk" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

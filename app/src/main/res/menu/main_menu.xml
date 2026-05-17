@@ -8,6 +8,16 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_view_todos"
+        android:title="Notes &amp; Todos"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_telegram"
+        android:title="Telegram"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_clear_chat"
         android:title="Clear Chat"
         app:showAsAction="never" />

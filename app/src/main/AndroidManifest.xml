@@ -47,6 +47,26 @@
             android:name=".ModelPickerActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".TodosActivity"
+            android:exported="false"
+            android:label="Notes &amp; Todos" />
+
+        <activity
+            android:name=".TelegramActivity"
+            android:exported="false"
+            android:label="Telegram" />
+
+        <activity
+            android:name=".TelegramChatsActivity"
+            android:exported="false"
+            android:label="Chats" />
+
+        <activity
+            android:name=".TelegramChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>
