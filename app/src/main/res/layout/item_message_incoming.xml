@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="start"
-    android:padding="4dp">
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
 
     <TextView
         android:id="@+id/tvSender"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="11sp"
-        android:textStyle="bold"
-        android:textColor="?attr/colorPrimary"
+        android:textColor="@color/gemma_ink_mute"
         android:paddingStart="4dp"
-        android:paddingBottom="2dp" />
+        android:paddingBottom="2dp"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.04"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@drawable/bg_bubble_model"
+        android:background="@drawable/bg_bubble_incoming_new"
         android:padding="10dp"
         android:layout_marginEnd="64dp">
 
@@ -29,16 +31,20 @@
             android:id="@+id/tvText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:textColor="@color/gemma_ink_soft"
+            android:lineSpacingMultiplier="1.4"
+            android:breakStrategy="high_quality" />
 
         <TextView
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="9sp"
+            android:textColor="@color/gemma_ink_faint"
             android:layout_gravity="end"
-            android:layout_marginTop="4dp" />
-
+            android:layout_marginTop="4dp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.06" />
     </LinearLayout>
 </LinearLayout>

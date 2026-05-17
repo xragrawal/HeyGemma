@@ -1,105 +1,381 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/gemma_bg">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:title="Chats"
-            app:titleTextColor="@android:color/white"
-            app:navigationIcon="@drawable/ic_back" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="12dp">
 
-        <!-- Read-aloud filter bar -->
+        <!-- Back button -->
+        <FrameLayout
+            android:id="@+id/btnBack"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_circle_surface2"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_back"
+                android:contentDescription="Back" />
+        </FrameLayout>
+
+        <!-- Icon + title + subtitle -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="10dp"
+                android:src="@drawable/ic_telegram"
+                android:contentDescription="Telegram" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Telegram"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gemma_ink"
+                    android:letterSpacing="-0.01" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="routed through GEMMA"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.06"
+                    android:textColor="@color/gemma_ink_mute" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Search button -->
+        <FrameLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_circle_surface2"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_search"
+                android:contentDescription="Search" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- 1px line separator -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gemma_line" />
+
+    <!-- Scrollable body -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="false">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="?attr/colorSurface"
-            android:elevation="2dp"
-            android:paddingHorizontal="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="12dp">
 
+            <!-- Editorial heading -->
             <TextView
+                android:id="@+id/tvChatsEditorial"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Read aloud"
-                android:textSize="11sp"
-                android:textColor="?android:attr/textColorSecondary"
-                android:layout_marginBottom="4dp" />
+                android:text="0 unread · 0 chats"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.18"
+                android:textAllCaps="true"
+                android:textColor="@color/gemma_ink_faint" />
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleFilter"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="14dp"
+                android:text="What Gemma is reading aloud."
+                android:textSize="30sp"
+                android:textColor="@color/gemma_ink"
+                android:letterSpacing="-0.02"
+                android:textStyle="bold"
+                android:lineSpacingMultiplier="1.05" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnFilterEmergency"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+            <!-- Priority toggle card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_surface_border_14"
+                android:padding="14dp"
+                android:layout_marginBottom="14dp">
+
+                <!-- Header row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Emergency"
-                    android:textSize="12sp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnFilterImportant"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Read aloud"
+                        android:textSize="10sp"
+                        android:fontFamily="monospace"
+                        android:letterSpacing="0.18"
+                        android:textAllCaps="true"
+                        android:textColor="@color/gemma_ink_mute" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="tap to switch"
+                        android:textSize="10sp"
+                        android:fontFamily="monospace"
+                        android:letterSpacing="0.06"
+                        android:textColor="@color/gemma_ink_faint" />
+                </LinearLayout>
+
+                <!-- 3 filter buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Important"
-                    android:textSize="12sp" />
+                    android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnFilterAll"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+                    <LinearLayout
+                        android:id="@+id/btnFilterEmergency"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_filter_btn_inactive"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="10dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_mic"
+                            android:tint="@color/gemma_rose"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Emergency" />
+
+                        <TextView
+                            android:id="@+id/tvFilterEmergencyLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Emergency"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gemma_ink_soft"
+                            android:gravity="center" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnFilterImportant"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_filter_btn_inactive"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="10dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_sparkle"
+                            android:tint="@color/gemma_amber"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Important" />
+
+                        <TextView
+                            android:id="@+id/tvFilterImportantLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Important"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gemma_ink_soft"
+                            android:gravity="center" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnFilterAll"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_filter_btn_inactive"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="10dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_mic"
+                            android:tint="@color/gemma_lime"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="All" />
+
+                        <TextView
+                            android:id="@+id/tvFilterAllLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="All"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gemma_ink_soft"
+                            android:gravity="center" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Description line -->
+                <TextView
+                    android:id="@+id/tvFilterDesc"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="All"
-                    android:textSize="12sp" />
+                    android:layout_marginTop="10dp"
+                    android:text="Only urgent contacts &amp; alerts"
+                    android:textSize="12sp"
+                    android:textColor="@color/gemma_ink_mute"
+                    android:lineSpacingMultiplier="1.45" />
+            </LinearLayout>
 
-            </com.google.android.material.button.MaterialButtonToggleGroup>
+            <!-- Chats section header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingBottom="6dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Chats"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gemma_ink"
+                        android:letterSpacing="-0.01" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="filtered"
+                        android:textSize="10sp"
+                        android:fontFamily="monospace"
+                        android:letterSpacing="0.14"
+                        android:textAllCaps="true"
+                        android:textColor="@color/gemma_ink_faint" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gemma_line2" />
+            </LinearLayout>
+
+            <!-- Empty state -->
+            <TextView
+                android:id="@+id/tvEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingTop="40dp"
+                android:paddingBottom="40dp"
+                android:text="No chats yet.\nRefresh contacts to load messages."
+                android:textSize="15sp"
+                android:textColor="@color/gemma_ink_mute"
+                android:visibility="gone" />
+
+            <!-- Chat list -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvChats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="never" />
 
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-        <TextView
-            android:id="@+id/tvEmpty"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="No chats yet.\nRefresh contacts to load messages."
-            android:textSize="15sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:visibility="gone" />
+    <!-- Nav bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:gravity="center"
+        android:orientation="horizontal">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvChats"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
+        <View
+            android:layout_width="120dp"
+            android:layout_height="4dp"
+            android:background="@drawable/bg_nav_bar_pill" />
     </LinearLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>

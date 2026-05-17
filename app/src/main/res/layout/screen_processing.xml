@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/gemma_bg"
+    android:gravity="center">
+
+    <!-- Center content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp">
+
+        <!-- Animated ring + sparkle icon -->
+        <FrameLayout
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_marginBottom="40dp">
+
+            <!-- Spinning ring (animated via ObjectAnimator in code) -->
+            <View
+                android:id="@+id/viewSpinRing"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_process_step_active" />
+
+            <!-- Inner lime circle -->
+            <FrameLayout
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle_lime">
+
+                <ImageView
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_sparkle"
+                    android:tint="@color/gemma_bg"
+                    android:contentDescription="Thinking" />
+            </FrameLayout>
+        </FrameLayout>
+
+        <!-- "GEMMA IS THINKING" label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GEMMA IS THINKING"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.2"
+            android:textAllCaps="true"
+            android:textColor="@color/gemma_lime"
+            android:gravity="center" />
+
+        <!-- Transcript quote -->
+        <TextView
+            android:id="@+id/tvProcessTranscript"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="&quot;…&quot;"
+            android:textSize="22sp"
+            android:textStyle="italic"
+            android:textColor="@color/gemma_ink_soft"
+            android:gravity="center"
+            android:maxWidth="300dp"
+            android:lineSpacingMultiplier="1.25"
+            android:ellipsize="end"
+            android:maxLines="3" />
+
+        <!-- Process steps -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="34dp"
+            android:orientation="vertical">
+
+            <!-- Step 1: done -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <FrameLayout
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/bg_process_step_done">
+
+                    <ImageView
+                        android:layout_width="11dp"
+                        android:layout_height="11dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        android:tint="@color/gemma_bg"
+                        android:contentDescription="Done" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvStep1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Understanding intent"
+                    android:textSize="14sp"
+                    android:textColor="@color/gemma_ink_mute"
+                    android:textStyle="normal" />
+            </LinearLayout>
+
+            <!-- Step 2: active -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <FrameLayout
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/bg_process_step_active">
+
+                    <View
+                        android:id="@+id/viewActiveDot"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_circle_lime" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Working on it…"
+                    android:textSize="14sp"
+                    android:textColor="@color/gemma_ink" />
+            </LinearLayout>
+
+            <!-- Step 3: pending -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/bg_process_step_pending" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Almost done"
+                    android:textSize="14sp"
+                    android:textColor="@color/gemma_ink_faint" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Nav bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="120dp"
+            android:layout_height="4dp"
+            android:background="@drawable/bg_nav_bar_pill" />
+    </LinearLayout>
+
+</LinearLayout>

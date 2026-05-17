@@ -1,35 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp"
-    android:paddingTop="4dp"
-    android:paddingBottom="4dp">
+    android:layout_marginBottom="10dp">
 
-    <CheckBox
-        android:id="@+id/cbDone"
-        android:layout_width="wrap_content"
+    <!-- Card background (swapped in code for fresh items) -->
+    <LinearLayout
+        android:id="@+id/cardInner"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp" />
+        android:orientation="horizontal"
+        android:background="@drawable/bg_todo_card"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="14dp"
+        android:gravity="top">
 
+        <!-- Circular checkbox -->
+        <FrameLayout
+            android:id="@+id/btnCheck"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_process_step_pending"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/ivCheck"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Text content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTodoText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/gemma_ink"
+                android:lineSpacingMultiplier="1.18"
+                android:letterSpacing="-0.005" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- "JUST ADDED" badge (top-right, absolute positioned via FrameLayout) -->
     <TextView
-        android:id="@+id/tvTodoText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textSize="15sp" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnDelete"
-        style="?attr/materialIconButtonStyle"
+        android:id="@+id/tvJustAdded"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="Delete"
-        app:icon="@android:drawable/ic_menu_delete"
-        xmlns:app="http://schemas.android.com/apk/res-auto" />
+        android:layout_gravity="top|end"
+        android:layout_marginTop="-9dp"
+        android:layout_marginEnd="14dp"
+        android:background="@drawable/bg_just_added_pill"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:text="JUST ADDED"
+        android:textColor="@color/gemma_bg"
+        android:textSize="10sp"
+        android:letterSpacing="0.14"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
-</LinearLayout>
+</FrameLayout>

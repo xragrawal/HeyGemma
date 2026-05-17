@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand colors -->
+    <color name="gemma_bg">#0A0A0A</color>
+    <color name="gemma_bg_2">#111111</color>
+    <color name="gemma_surface">#161616</color>
+    <color name="gemma_surface_2">#1E1E1E</color>
+    <color name="gemma_lime">#B8FF5E</color>
+    <color name="gemma_rose">#FF7A6B</color>
+    <color name="gemma_amber">#F5B450</color>
+
+    <!-- Ink -->
+    <color name="gemma_ink">#F5F5F5</color>
+    <color name="gemma_ink_soft">#D6D6D6</color>
+    <color name="gemma_ink_mute">#8A8A8A</color>
+    <color name="gemma_ink_faint">#5A5A5A</color>
+
+    <!-- Lines (alpha encoded as AARRGGBB) -->
+    <color name="gemma_line">#0FFFFFFF</color>
+    <color name="gemma_line2">#1AFFFFFF</color>
+
+    <!-- Tinted lime -->
+    <color name="gemma_lime_06">#0FB8FF5E</color>
+    <color name="gemma_lime_16">#29B8FF5E</color>
+    <color name="gemma_lime_22">#38B8FF5E</color>
+    <color name="gemma_lime_40">#66B8FF5E</color>
+    <color name="gemma_lime_14">#24B8FF5E</color>
+    <color name="gemma_lime_50">#80B8FF5E</color>
+
+    <!-- Tinted rose -->
+    <color name="gemma_rose_14">#24FF7A6B</color>
+    <color name="gemma_rose_50">#80FF7A6B</color>
+
+    <!-- Tinted amber -->
+    <color name="gemma_amber_14">#24F5B450</color>
+    <color name="gemma_amber_50">#80F5B450</color>
+
+    <!-- Dock fade bg -->
+    <color name="gemma_bg_fade">#E60A0A0A</color>
+</resources>

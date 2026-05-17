@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gemmaapp.databinding.ActivityTelegramChatsBinding
 import kotlinx.coroutines.Job
@@ -22,13 +22,12 @@ class TelegramChatsActivity : AppCompatActivity() {
     private var currentFilter = InboxFilter.EMERGENCY
     private var pollingJob: Job? = null
 
-    // Serialises classification so concurrent Gemma calls never happen
     private val classifyQueue = Channel<TelegramMessage>(Channel.UNLIMITED)
 
     private val adapter = TelegramChatsAdapter { lastMessage ->
         startActivity(
             Intent(this, TelegramChatActivity::class.java).apply {
-                putExtra(TelegramChatActivity.EXTRA_CHAT_ID,   lastMessage.chatId)
+                putExtra(TelegramChatActivity.EXTRA_CHAT_ID, lastMessage.chatId)
                 putExtra(TelegramChatActivity.EXTRA_CHAT_NAME, lastMessage.chatName)
             }
         )
@@ -39,15 +38,14 @@ class TelegramChatsActivity : AppCompatActivity() {
         binding = ActivityTelegramChatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
-        binding.toolbar.setNavigationOnClickListener { finish() }
-
         lifecycleScope.launch { TelegramRepository.init(this@TelegramChatsActivity) }
-        TtsManager.init(this)   // safe to call multiple times — no-ops if already ready
+        TtsManager.init(this)
 
         setupList()
         setupFilterButtons()
         observeInbox()
+
+        binding.btnBack.setOnClickListener { finish() }
     }
 
     override fun onResume() {
@@ -64,20 +62,60 @@ class TelegramChatsActivity : AppCompatActivity() {
 
     private fun setupList() {
         binding.rvChats.layoutManager = LinearLayoutManager(this)
-        binding.rvChats.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         binding.rvChats.adapter = adapter
     }
 
     private fun setupFilterButtons() {
-        // Default selection
-        binding.toggleFilter.check(R.id.btnFilterEmergency)
+        // Default selection: EMERGENCY
+        updateFilterSelection(InboxFilter.EMERGENCY)
 
-        binding.toggleFilter.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-            currentFilter = when (checkedId) {
-                R.id.btnFilterEmergency -> InboxFilter.EMERGENCY
-                R.id.btnFilterImportant -> InboxFilter.IMPORTANT
-                else                    -> InboxFilter.ALL
+        binding.btnFilterEmergency.setOnClickListener {
+            currentFilter = InboxFilter.EMERGENCY
+            adapter.currentFilter = currentFilter
+            adapter.notifyDataSetChanged()
+            updateFilterSelection(InboxFilter.EMERGENCY)
+        }
+
+        binding.btnFilterImportant.setOnClickListener {
+            currentFilter = InboxFilter.IMPORTANT
+            adapter.currentFilter = currentFilter
+            adapter.notifyDataSetChanged()
+            updateFilterSelection(InboxFilter.IMPORTANT)
+        }
+
+        binding.btnFilterAll.setOnClickListener {
+            currentFilter = InboxFilter.ALL
+            adapter.currentFilter = currentFilter
+            adapter.notifyDataSetChanged()
+            updateFilterSelection(InboxFilter.ALL)
+        }
+    }
+
+    private fun updateFilterSelection(filter: InboxFilter) {
+        // Reset all to inactive
+        binding.btnFilterEmergency.background = ContextCompat.getDrawable(this, R.drawable.bg_filter_btn_inactive)
+        binding.tvFilterEmergencyLabel.setTextColor(getColor(R.color.gemma_ink_soft))
+        binding.btnFilterImportant.background = ContextCompat.getDrawable(this, R.drawable.bg_filter_btn_inactive)
+        binding.tvFilterImportantLabel.setTextColor(getColor(R.color.gemma_ink_soft))
+        binding.btnFilterAll.background = ContextCompat.getDrawable(this, R.drawable.bg_filter_btn_inactive)
+        binding.tvFilterAllLabel.setTextColor(getColor(R.color.gemma_ink_soft))
+
+        // Activate selected
+        when (filter) {
+            InboxFilter.EMERGENCY -> {
+                binding.btnFilterEmergency.background = ContextCompat.getDrawable(this, R.drawable.bg_filter_btn_active_emergency)
+                binding.tvFilterEmergencyLabel.setTextColor(getColor(R.color.gemma_rose))
+                binding.tvFilterDesc.text = "Only urgent contacts & alerts"
+            }
+            InboxFilter.IMPORTANT -> {
+                binding.btnFilterImportant.background = ContextCompat.getDrawable(this, R.drawable.bg_filter_btn_active_important)
+                binding.tvFilterImportantLabel.setTextColor(getColor(R.color.gemma_amber))
+                binding.tvFilterDesc.text = "Family, work, bots you trust"
+            }
+            InboxFilter.ALL -> {
+                binding.btnFilterAll.background = ContextCompat.getDrawable(this, R.drawable.bg_filter_btn_active_all)
+                binding.tvFilterAllLabel.setTextColor(getColor(R.color.gemma_lime))
+                binding.tvFilterDesc.text = "Read every message aloud"
             }
         }
     }
@@ -85,9 +123,13 @@ class TelegramChatsActivity : AppCompatActivity() {
     private fun observeInbox() {
         lifecycleScope.launch {
             TelegramRepository.observeInbox().collectLatest { chats ->
+                adapter.currentFilter = currentFilter
                 adapter.submitList(chats)
-                binding.tvEmpty.visibility  = if (chats.isEmpty()) View.VISIBLE else View.GONE
-                binding.rvChats.visibility  = if (chats.isEmpty()) View.GONE   else View.VISIBLE
+                binding.tvEmpty.visibility = if (chats.isEmpty()) View.VISIBLE else View.GONE
+                binding.rvChats.visibility = if (chats.isEmpty()) View.GONE else View.VISIBLE
+
+                val total = chats.size
+                binding.tvChatsEditorial.text = "${total} chats"
             }
         }
     }
@@ -102,12 +144,11 @@ class TelegramChatsActivity : AppCompatActivity() {
         }
     }
 
-    // Single coroutine processes messages one-at-a-time — no concurrent Gemma calls
     private fun startClassifier() {
         lifecycleScope.launch {
             for (msg in classifyQueue) {
                 val shouldRead = when (currentFilter) {
-                    InboxFilter.ALL       -> true
+                    InboxFilter.ALL -> true
                     InboxFilter.IMPORTANT -> TelegramMessageClassifier.isImportant(msg.text)
                     InboxFilter.EMERGENCY -> TelegramMessageClassifier.isEmergency(msg.text)
                 }

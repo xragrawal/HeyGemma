@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D0D0D">
+
+    <!-- Top bar: recording indicator + close -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:paddingTop="18dp"
+        android:gravity="center_vertical">
+
+        <!-- Dot + timer -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:id="@+id/viewRecDot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/bg_circle_lime" />
+
+            <TextView
+                android:id="@+id/tvRecTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RECORDING · 00:00"
+                android:textSize="11sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.18"
+                android:textAllCaps="true"
+                android:textColor="@color/gemma_rose" />
+        </LinearLayout>
+
+        <!-- Close button -->
+        <FrameLayout
+            android:id="@+id/btnListenClose"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_circle_surface2"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_close"
+                android:contentDescription="Close" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Center content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp">
+
+        <!-- Concentric circles + mic -->
+        <FrameLayout
+            android:layout_width="148dp"
+            android:layout_height="148dp"
+            android:layout_marginBottom="36dp">
+
+            <!-- Outer ring -->
+            <View
+                android:id="@+id/ringOuter"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_process_step_active"
+                android:alpha="0.3" />
+
+            <!-- Middle ring -->
+            <View
+                android:id="@+id/ringMiddle"
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_process_step_active"
+                android:alpha="0.5" />
+
+            <!-- Inner lime circle with mic -->
+            <FrameLayout
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle_lime">
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_mic"
+                    android:tint="@color/gemma_bg"
+                    android:contentDescription="Mic" />
+            </FrameLayout>
+        </FrameLayout>
+
+        <!-- "I'm listening..." -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="I'm listening..."
+            android:textSize="32sp"
+            android:textColor="@color/gemma_ink"
+            android:letterSpacing="-0.015"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <!-- Sub text -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Speak naturally. Gemma will respond when done."
+            android:textSize="13sp"
+            android:textColor="@color/gemma_ink_mute"
+            android:lineSpacingMultiplier="1.5"
+            android:gravity="center"
+            android:maxWidth="260dp" />
+
+        <!-- Waveform bars -->
+        <LinearLayout
+            android:id="@+id/llWaveform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="36dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- 8 bars - widths set in code via animation -->
+            <View android:id="@+id/wbar1" android:layout_width="4dp" android:layout_height="12dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+            <View android:id="@+id/wbar2" android:layout_width="4dp" android:layout_height="24dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+            <View android:id="@+id/wbar3" android:layout_width="4dp" android:layout_height="36dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+            <View android:id="@+id/wbar4" android:layout_width="4dp" android:layout_height="48dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+            <View android:id="@+id/wbar5" android:layout_width="4dp" android:layout_height="40dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+            <View android:id="@+id/wbar6" android:layout_width="4dp" android:layout_height="28dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+            <View android:id="@+id/wbar7" android:layout_width="4dp" android:layout_height="18dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+            <View android:id="@+id/wbar8" android:layout_width="4dp" android:layout_height="10dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:background="@drawable/bg_circle_lime" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Bottom dock with stop FAB -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="12dp"
+        android:gravity="center">
+
+        <FrameLayout
+            android:id="@+id/btnListenSend"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_circle_lime"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_mic"
+                android:tint="@color/gemma_bg"
+                android:contentDescription="Stop and send" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <!-- Nav bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="120dp"
+            android:layout_height="4dp"
+            android:background="@drawable/bg_nav_bar_pill" />
+    </LinearLayout>
+
+</LinearLayout>

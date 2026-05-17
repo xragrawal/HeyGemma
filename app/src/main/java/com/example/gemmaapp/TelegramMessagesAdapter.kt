@@ -1,6 +1,7 @@
 package com.example.gemmaapp
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -26,12 +27,12 @@ class TelegramMessagesAdapter : ListAdapter<TelegramMessage, TelegramMessagesAda
     inner class VH(parent: ViewGroup, viewType: Int) : RecyclerView.ViewHolder(
         LayoutInflater.from(parent.context).inflate(
             if (viewType == TYPE_OUTGOING) R.layout.item_message_outgoing
-            else                           R.layout.item_message_incoming,
+            else R.layout.item_message_incoming,
             parent, false
         )
     ) {
-        val tvText:   TextView  = itemView.findViewById(R.id.tvText)
-        val tvTime:   TextView  = itemView.findViewById(R.id.tvTime)
+        val tvText: TextView = itemView.findViewById(R.id.tvText)
+        val tvTime: TextView = itemView.findViewById(R.id.tvTime)
         val tvSender: TextView? = itemView.findViewById(R.id.tvSender)
     }
 
@@ -42,8 +43,21 @@ class TelegramMessagesAdapter : ListAdapter<TelegramMessage, TelegramMessagesAda
 
     override fun onBindViewHolder(holder: VH, pos: Int) {
         val msg = getItem(pos)
-        holder.tvText.text   = msg.text
-        holder.tvTime.text   = if (msg.timestamp > 0) timeFmt.format(Date(msg.timestamp)) else ""
-        holder.tvSender?.text = msg.senderName
+        holder.tvText.text = msg.text
+        holder.tvTime.text = if (msg.timestamp > 0) timeFmt.format(Date(msg.timestamp)) else ""
+
+        // For outgoing messages show GEMMA tag
+        if (msg.isOutgoing) {
+            holder.tvSender?.visibility = View.VISIBLE
+            holder.tvSender?.text = "✦ SENT BY GEMMA"
+        } else {
+            // For incoming messages, show sender name if available
+            if (msg.senderName.isNotBlank()) {
+                holder.tvSender?.visibility = View.VISIBLE
+                holder.tvSender?.text = msg.senderName
+            } else {
+                holder.tvSender?.visibility = View.GONE
+            }
+        }
     }
 }

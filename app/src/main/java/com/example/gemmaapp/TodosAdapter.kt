@@ -2,18 +2,22 @@ package com.example.gemmaapp
 
 import android.graphics.Paint
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.button.MaterialButton
 
 class TodosAdapter(
     private val onToggle: (TodoEntity, Boolean) -> Unit,
     private val onDelete: (TodoEntity) -> Unit
 ) : ListAdapter<TodoEntity, TodosAdapter.VH>(DIFF) {
+
+    var freshId: String? = null
 
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<TodoEntity>() {
@@ -25,30 +29,53 @@ class TodosAdapter(
     inner class VH(parent: ViewGroup) : RecyclerView.ViewHolder(
         LayoutInflater.from(parent.context).inflate(R.layout.item_todo, parent, false)
     ) {
-        val cb: CheckBox        = itemView.findViewById(R.id.cbDone)
-        val tv: TextView        = itemView.findViewById(R.id.tvTodoText)
-        val btnDelete: MaterialButton = itemView.findViewById(R.id.btnDelete)
+        val cardInner: ViewGroup = itemView.findViewById(R.id.cardInner)
+        val btnCheck: FrameLayout = itemView.findViewById(R.id.btnCheck)
+        val ivCheck: ImageView = itemView.findViewById(R.id.ivCheck)
+        val tvText: TextView = itemView.findViewById(R.id.tvTodoText)
+        val tvJustAdded: TextView = itemView.findViewById(R.id.tvJustAdded)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(parent)
 
     override fun onBindViewHolder(holder: VH, pos: Int) {
         val item = getItem(pos)
+        val ctx = holder.itemView.context
 
-        holder.tv.text = item.text
+        holder.tvText.text = item.text
+
+        // Done state
         if (item.isDone) {
-            holder.tv.paintFlags = holder.tv.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-            holder.tv.alpha = 0.5f
+            holder.tvText.paintFlags = holder.tvText.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            holder.tvText.alpha = 0.45f
+            holder.cardInner.background = ContextCompat.getDrawable(ctx, R.drawable.bg_todo_card)
+            // Lime circle checkbox
+            holder.btnCheck.background = ContextCompat.getDrawable(ctx, R.drawable.bg_circle_lime)
+            holder.ivCheck.visibility = View.VISIBLE
         } else {
-            holder.tv.paintFlags = holder.tv.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-            holder.tv.alpha = 1.0f
+            holder.tvText.paintFlags = holder.tvText.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            holder.tvText.alpha = 1.0f
+            // Un-done: card bg is fresh or normal
+            val isFresh = freshId != null && item.id == freshId
+            holder.cardInner.background = ContextCompat.getDrawable(
+                ctx,
+                if (isFresh) R.drawable.bg_todo_card_fresh else R.drawable.bg_todo_card
+            )
+            // Empty circle checkbox
+            holder.btnCheck.background = ContextCompat.getDrawable(ctx, R.drawable.bg_process_step_pending)
+            holder.ivCheck.visibility = View.GONE
         }
 
-        // Prevent the listener from firing during rebind
-        holder.cb.setOnCheckedChangeListener(null)
-        holder.cb.isChecked = item.isDone
-        holder.cb.setOnCheckedChangeListener { _, checked -> onToggle(item, checked) }
+        // "JUST ADDED" badge
+        val isFresh = freshId != null && item.id == freshId
+        holder.tvJustAdded.visibility = if (isFresh && !item.isDone) View.VISIBLE else View.GONE
 
-        holder.btnDelete.setOnClickListener { onDelete(item) }
+        // Toggle click
+        holder.btnCheck.setOnClickListener {
+            onToggle(item, !item.isDone)
+        }
+        holder.itemView.setOnClickListener {
+            onToggle(item, !item.isDone)
+        }
     }
 }
