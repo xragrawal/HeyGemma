@@ -67,6 +67,11 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ElevenLabsActivity"
+            android:exported="false"
+            android:label="ElevenLabs TTS" />
+
     </application>
 
 </manifest>

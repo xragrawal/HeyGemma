@@ -28,6 +28,41 @@ object TelegramRepository {
     fun getToken(): String? = TelegramConfig.getToken(appContext)
     fun saveToken(token: String) = TelegramConfig.setToken(appContext, token)
 
+    private var sessionOffset: Long = -1L
+    private var sessionStartTime: Long = 0L
+
+    // Returns incoming messages whose Telegram timestamp is >= when this session started.
+    // Uses a 5-second buffer to cover messages sent just before the screen opened.
+    suspend fun pollNewMessages(): List<TelegramMessage> {
+        val token = getToken() ?: return emptyList()
+        val fetchOffset = if (sessionOffset >= 0) sessionOffset + 1 else 0
+
+        return TelegramApi.getUpdates(token, fetchOffset).fold(
+            onSuccess = { result ->
+                if (result.contacts.isNotEmpty()) {
+                    val entities = result.contacts.map { TelegramContactEntity(it.chatId, it.name, it.type) }
+                    contactDao.upsertAll(entities)
+                    _contacts.value = result.contacts
+                    result.contacts.forEach { messageDao.renameChatId(it.chatId, it.name) }
+                }
+                messageDao.insertAll(result.messages)
+
+                if (result.maxUpdateId >= 0) sessionOffset = result.maxUpdateId
+
+                // Only return messages that arrived during this session (with a 5s grace buffer)
+                result.messages.filter {
+                    !it.isOutgoing && it.timestamp >= (sessionStartTime - 5_000L)
+                }
+            },
+            onFailure = { emptyList() }
+        )
+    }
+
+    fun resetSessionOffset() {
+        sessionOffset = -1L
+        sessionStartTime = System.currentTimeMillis()
+    }
+
     // ── Live DB flows for UI ──────────────────────────────────────────────────
 
     fun observeInbox(): Flow<List<TelegramMessage>>              = messageDao.observeInbox()

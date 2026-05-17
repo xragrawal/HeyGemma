@@ -46,7 +46,9 @@ object LlamaEngine {
      */
     suspend fun load(modelPath: String): String? = withContext(Dispatchers.IO) {
         Log.i(TAG, "Loading $modelPath with $GPU_LAYERS GPU layers")
-        nativeLoad(modelPath, N_CTX, GPU_LAYERS)
+        val err = nativeLoad(modelPath, N_CTX, GPU_LAYERS)
+        isLoaded = (err == null)
+        err
     }
 
     /**
@@ -66,11 +68,17 @@ object LlamaEngine {
         nativeGenerate(prompt, maxTokens, temperature, topP, onToken)
     }
 
+    var isLoaded: Boolean = false
+        private set
+
     /** Interrupt a running generation. Safe to call from any thread. */
     fun stop() = nativeStop()
 
     /** Free model memory. Call from onDestroy / when model is no longer needed. */
-    suspend fun release() = withContext(Dispatchers.IO) { nativeRelease() }
+    suspend fun release() = withContext(Dispatchers.IO) {
+        nativeRelease()
+        isLoaded = false
+    }
 
     // ── Prompt formatting ─────────────────────────────────────────────────────
 

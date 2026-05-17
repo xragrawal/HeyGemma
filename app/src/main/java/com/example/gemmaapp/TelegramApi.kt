@@ -22,18 +22,22 @@ object TelegramApi {
 
     data class UpdateResult(
         val contacts: List<TelegramContact>,
-        val messages: List<TelegramMessage>
+        val messages: List<TelegramMessage>,
+        val maxUpdateId: Long = -1L   // -1 means no updates received
     )
 
-    // ── Fetch all chats that have interacted with the bot ─────────────────────
+    // ── Fetch updates, optionally from a given offset ─────────────────────────
 
-    suspend fun getUpdates(token: String): Result<UpdateResult> =
+    suspend fun getUpdates(token: String, offset: Long = 0): Result<UpdateResult> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val url     = "$BASE$token/getUpdates?limit=100&allowed_updates=[\"message\"]"
+                val url = buildString {
+                    append("$BASE$token/getUpdates?limit=100&allowed_updates=[\"message\"]")
+                    if (offset > 0) append("&offset=$offset")
+                }
                 val request = Request.Builder().url(url).build()
                 val body    = client.newCall(request).execute().use { it.body?.string() ?: "" }
-                Log.d(TAG, "getUpdates response: $body")
+                Log.d(TAG, "getUpdates (offset=$offset) response: $body")
                 parseUpdates(body)
             }.also { if (it.isFailure) Log.e(TAG, "getUpdates error", it.exceptionOrNull()) }
         }
@@ -66,28 +70,30 @@ object TelegramApi {
         val root = JSONObject(json)
         if (!root.optBoolean("ok")) return UpdateResult(emptyList(), emptyList())
 
-        val updates       = root.getJSONArray("result")
-        val seenContacts  = mutableSetOf<Long>()
-        val contacts      = mutableListOf<TelegramContact>()
-        val messages      = mutableListOf<TelegramMessage>()
+        val updates      = root.getJSONArray("result")
+        val seenContacts = mutableSetOf<Long>()
+        val contacts     = mutableListOf<TelegramContact>()
+        val messages     = mutableListOf<TelegramMessage>()
+        var maxUpdateId  = -1L
 
         for (i in 0 until updates.length()) {
-            val update  = updates.getJSONObject(i)
+            val update   = updates.getJSONObject(i)
+            val updateId = update.optLong("update_id", -1L)
+            if (updateId > maxUpdateId) maxUpdateId = updateId
+
             val message = update.optJSONObject("message")
                 ?: update.optJSONObject("channel_post")
                 ?: continue
 
-            val chat      = message.optJSONObject("chat") ?: continue
-            val chatId    = chat.getLong("id")
-            val chatType  = chat.optString("type", "private")
-            val chatName  = chatName(chat, chatId, chatType)
+            val chat     = message.optJSONObject("chat") ?: continue
+            val chatId   = chat.getLong("id")
+            val chatType = chat.optString("type", "private")
+            val chatName = chatName(chat, chatId, chatType)
 
-            // Contacts — deduplicated
             if (seenContacts.add(chatId)) {
                 contacts.add(TelegramContact(chatId, chatName, chatType))
             }
 
-            // Messages
             val text = message.optString("text", "").ifBlank { "[media]" }
             val from = message.optJSONObject("from")
             val senderName = if (from != null) {
@@ -97,7 +103,7 @@ object TelegramApi {
             } else chatName
 
             val msgId     = message.optLong("message_id", System.currentTimeMillis())
-            val timestamp = message.optLong("date", 0L) * 1000L  // seconds → millis
+            val timestamp = message.optLong("date", 0L) * 1000L
 
             messages.add(
                 TelegramMessage(
@@ -111,7 +117,7 @@ object TelegramApi {
                 )
             )
         }
-        return UpdateResult(contacts, messages)
+        return UpdateResult(contacts, messages, maxUpdateId)
     }
 
     private fun chatName(chat: org.json.JSONObject, chatId: Long, type: String): String =

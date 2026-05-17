@@ -22,6 +22,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     init {
         TodoRepository.init(app)
         viewModelScope.launch { TelegramRepository.init(app) }
+        TtsManager.init(app)
     }
 
     private val _messages    = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -49,6 +50,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _isListeningForWakeWord = MutableStateFlow(false)
     val isListeningForWakeWord: StateFlow<Boolean> = _isListeningForWakeWord.asStateFlow()
+
+    private val _ttsEnabled = MutableStateFlow(true)
+    val ttsEnabled: StateFlow<Boolean> = _ttsEnabled.asStateFlow()
+
+    fun toggleTts() {
+        val enabled = !_ttsEnabled.value
+        _ttsEnabled.value = enabled
+        if (!enabled) TtsManager.stop()
+    }
 
     private val audioRecorder = AudioRecorder()
 
@@ -177,12 +187,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 }
             )
 
+            val finalText = if (result.error != null) "Error: ${result.error}" else result.displayText
             _messages.update { msgs ->
-                val finalText = if (result.error != null) "Error: ${result.error}" else result.displayText
                 msgs.dropLast(1) + ChatMessage(finalText, isUser = false, isStreaming = false, agentType = result.agentType)
             }
             _activeAgent.value = null
             _isGenerating.value = false
+
+            if (_ttsEnabled.value) viewModelScope.launch { TtsManager.speak(finalText) }
 
             startWakeWordListening()
         }
@@ -210,6 +222,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         super.onCleared()
         audioRecorder.stopRecording()
         stopWakeWordListening()
+        TtsManager.shutdown()
         viewModelScope.launch {
             LlamaEngine.release()
             WhisperEngine.release()

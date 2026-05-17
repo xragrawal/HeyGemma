@@ -1,7 +1,14 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+}
+
+val localProps = Properties().also { props ->
+    val f = rootProject.file("local.properties")
+    if (f.exists()) props.load(f.inputStream())
 }
 
 android {
@@ -14,6 +21,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "ELEVENLABS_API_KEY",
+            "\"${localProps.getProperty("ELEVENLABS_API_KEY", "")}\"")
+        buildConfigField("String", "ELEVENLABS_VOICE_ID",
+            "\"${localProps.getProperty("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")}\"")
 
         ndk {
             // arm64-v8a: all modern Android phones
@@ -63,6 +75,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     packaging {

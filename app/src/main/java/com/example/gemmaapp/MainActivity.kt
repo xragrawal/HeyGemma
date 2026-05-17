@@ -179,6 +179,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            vm.ttsEnabled.collectLatest { enabled ->
+                binding.btnTts.setIconResource(
+                    if (enabled) R.drawable.ic_volume_up else R.drawable.ic_volume_off
+                )
+                binding.btnTts.iconTint = ColorStateList.valueOf(
+                    getColor(if (enabled) android.R.color.white else android.R.color.darker_gray)
+                )
+            }
+        }
     }
 
     private fun setupInputBar() {
@@ -200,6 +211,8 @@ class MainActivity : AppCompatActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
         }
+
+        binding.btnTts.setOnClickListener { vm.toggleTts() }
     }
 
     private fun setStatus(msg: String) {
@@ -230,6 +243,7 @@ class MainActivity : AppCompatActivity() {
         R.id.action_load_model  -> { launchModelPicker(); true }
         R.id.action_view_todos  -> { startActivity(Intent(this, TodosActivity::class.java)); true }
         R.id.action_telegram    -> { startActivity(Intent(this, TelegramActivity::class.java)); true }
+        R.id.action_elevenlabs  -> { startActivity(Intent(this, ElevenLabsActivity::class.java)); true }
         R.id.action_clear_chat  -> { vm.clearChat(); true }
         else -> super.onOptionsItemSelected(item)
     }
