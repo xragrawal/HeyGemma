@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/gemma_bg">
+    android:background="@color/gemma_bg"
+    android:fitsSystemWindows="true">
 
     <!-- Header -->
     <LinearLayout
@@ -73,6 +74,25 @@
                     android:textColor="@color/gemma_ink_mute" />
             </LinearLayout>
         </LinearLayout>
+
+        <!-- Settings (gear) button -->
+        <FrameLayout
+            android:id="@+id/btnSettings"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_circle_surface2"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_settings"
+                android:tint="@color/gemma_ink_soft"
+                android:contentDescription="Settings" />
+        </FrameLayout>
 
         <!-- Search button -->
         <FrameLayout

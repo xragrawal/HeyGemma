@@ -42,6 +42,23 @@ object TelegramApi {
             }.also { if (it.isFailure) Log.e(TAG, "getUpdates error", it.exceptionOrNull()) }
         }
 
+    // ── Verify token via getMe ────────────────────────────────────────────────
+
+    suspend fun getMe(token: String): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val request = Request.Builder().url("$BASE$token/getMe").build()
+                val body    = client.newCall(request).execute().use { it.body?.string() ?: "" }
+                Log.d(TAG, "getMe response: $body")
+                val root = JSONObject(body)
+                if (!root.optBoolean("ok")) error("Invalid token or bot not found")
+                val result = root.getJSONObject("result")
+                val name   = result.optString("first_name", "Bot")
+                val username = result.optString("username", "")
+                if (username.isNotBlank()) "$name (@$username)" else name
+            }.also { if (it.isFailure) Log.e(TAG, "getMe error", it.exceptionOrNull()) }
+        }
+
     // ── Send a message ────────────────────────────────────────────────────────
 
     suspend fun sendMessage(token: String, chatId: Long, text: String): Result<Unit> =

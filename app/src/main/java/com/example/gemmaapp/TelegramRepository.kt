@@ -28,6 +28,8 @@ object TelegramRepository {
     fun getToken(): String? = TelegramConfig.getToken(appContext)
     fun saveToken(token: String) = TelegramConfig.setToken(appContext, token)
 
+    suspend fun pingBot(token: String): Result<String> = TelegramApi.getMe(token)
+
     private var sessionOffset: Long = -1L
     private var sessionStartTime: Long = 0L
 

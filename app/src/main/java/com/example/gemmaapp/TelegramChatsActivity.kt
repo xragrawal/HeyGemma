@@ -1,7 +1,11 @@
 package com.example.gemmaapp
 
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -46,6 +50,9 @@ class TelegramChatsActivity : AppCompatActivity() {
         observeInbox()
 
         binding.btnBack.setOnClickListener { finish() }
+        binding.btnSettings.setOnClickListener {
+            startActivity(Intent(this, TelegramSettingsActivity::class.java))
+        }
     }
 
     override fun onResume() {
@@ -153,9 +160,21 @@ class TelegramChatsActivity : AppCompatActivity() {
                     InboxFilter.EMERGENCY -> TelegramMessageClassifier.isEmergency(msg.text)
                 }
                 if (shouldRead) {
+                    vibrateNotification()
                     TtsManager.speak("Message from ${msg.senderName}: ${msg.text}")
                 }
             }
+        }
+    }
+
+    private fun vibrateNotification() {
+        @Suppress("DEPRECATION")
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(400, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(400)
         }
     }
 
