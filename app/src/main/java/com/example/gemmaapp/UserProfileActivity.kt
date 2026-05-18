@@ -219,7 +219,7 @@ class UserProfileActivity : AppCompatActivity() {
                 // getChat failed for private user — guide toward contacts list
                 binding.etContactUsername.error = "Could not resolve: ${err.message}"
                 Toast.makeText(this,
-                    "❌ @username lookup failed. Tap the contact below instead.",
+                    "❌ Lookup failed. Tap the contact below instead.",
                     Toast.LENGTH_LONG).show()
                 false
             }

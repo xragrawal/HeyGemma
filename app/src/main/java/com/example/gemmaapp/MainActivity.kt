@@ -4,11 +4,16 @@ import android.Manifest
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.Toast
@@ -19,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gemmaapp.databinding.ActivityMainBinding
+import com.example.gemmaapp.databinding.ScreenEmergencyBinding
 import com.example.gemmaapp.databinding.ScreenHomeBinding
 import com.example.gemmaapp.databinding.ScreenListeningBinding
 import com.example.gemmaapp.databinding.ScreenProcessingBinding
@@ -29,7 +35,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-enum class AppScreen { HOME, LISTENING, PROCESSING, RESULT }
+enum class AppScreen { HOME, LISTENING, PROCESSING, RESULT, EMERGENCY }
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var listeningBinding: ScreenListeningBinding
     private lateinit var processingBinding: ScreenProcessingBinding
     private lateinit var resultBinding: ScreenResultBinding
+    private lateinit var emergencyBinding: ScreenEmergencyBinding
 
     private val vm: ChatViewModel by viewModels()
     private val todosAdapter = TodosAdapter(
@@ -59,6 +66,8 @@ class MainActivity : AppCompatActivity() {
     private var elapsedSeconds = 0
     private val timerHandler = Handler(Looper.getMainLooper())
     private var timerRunnable: Runnable? = null
+    private var emergencyPulseAnimator: ObjectAnimator? = null
+    private var emergencyVibrator: Vibrator? = null
 
     private val profileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -111,6 +120,9 @@ class MainActivity : AppCompatActivity() {
         listeningBinding = ScreenListeningBinding.bind(binding.listening.root)
         processingBinding = ScreenProcessingBinding.bind(binding.processing.root)
         resultBinding = ScreenResultBinding.bind(binding.result.root)
+        emergencyBinding = ScreenEmergencyBinding.bind(binding.emergency.root)
+
+        emergencyBinding.btnEmergencyDismiss.setOnClickListener { vm.dismissEmergencyAlert() }
 
         setupHomeScreen()
         setupListeningScreen()
@@ -262,14 +274,31 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            vm.emergencyAlert.collectLatest { event ->
+                if (event != null) {
+                    emergencyBinding.tvEmergencyIcon.text = event.icon
+                    emergencyBinding.tvEmergencySoundType.text = "${event.label.uppercase()} DETECTED"
+                    showScreen(AppScreen.EMERGENCY)
+                    startEmergencyPulseAnimation()
+                    startEmergencyVibration()
+                } else {
+                    stopEmergencyPulseAnimation()
+                    stopEmergencyVibration()
+                    if (currentScreen == AppScreen.EMERGENCY) showScreen(AppScreen.HOME)
+                }
+            }
+        }
     }
 
     private fun showScreen(screen: AppScreen) {
         currentScreen = screen
-        binding.home.root.visibility = if (screen == AppScreen.HOME) View.VISIBLE else View.GONE
-        binding.listening.root.visibility = if (screen == AppScreen.LISTENING) View.VISIBLE else View.GONE
-        binding.processing.root.visibility = if (screen == AppScreen.PROCESSING) View.VISIBLE else View.GONE
-        binding.result.root.visibility = if (screen == AppScreen.RESULT) View.VISIBLE else View.GONE
+        binding.home.root.visibility      = if (screen == AppScreen.HOME)       View.VISIBLE else View.GONE
+        binding.listening.root.visibility = if (screen == AppScreen.LISTENING)  View.VISIBLE else View.GONE
+        binding.processing.root.visibility= if (screen == AppScreen.PROCESSING) View.VISIBLE else View.GONE
+        binding.result.root.visibility    = if (screen == AppScreen.RESULT)     View.VISIBLE else View.GONE
+        binding.emergency.root.visibility = if (screen == AppScreen.EMERGENCY)  View.VISIBLE else View.GONE
     }
 
     private fun updateDateGreeting() {
@@ -362,10 +391,63 @@ class MainActivity : AppCompatActivity() {
         waveAnimators = emptyList()
     }
 
+    private fun startEmergencyPulseAnimation() {
+        emergencyPulseAnimator?.cancel()
+        emergencyPulseAnimator = ObjectAnimator.ofFloat(
+            emergencyBinding.viewEmergencyPulse, "alpha", 0f, 0.4f
+        ).apply {
+            duration = 600L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            start()
+        }
+    }
+
+    private fun stopEmergencyPulseAnimation() {
+        emergencyPulseAnimator?.cancel()
+        emergencyPulseAnimator = null
+        emergencyBinding.viewEmergencyPulse.alpha = 0f
+    }
+
+    private fun startEmergencyVibration() {
+        val vib = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+        emergencyVibrator = vib
+        // Pattern: 500ms vibrate, 300ms pause — repeats from index 0 until cancelled
+        val pattern = longArrayOf(0L, 500L, 300L, 500L, 300L)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vib.vibrate(VibrationEffect.createWaveform(pattern, 0))
+        } else {
+            @Suppress("DEPRECATION")
+            vib.vibrate(pattern, 0)
+        }
+    }
+
+    private fun stopEmergencyVibration() {
+        emergencyVibrator?.cancel()
+        emergencyVibrator = null
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        if (currentScreen == AppScreen.EMERGENCY) {
+            vm.dismissEmergencyAlert()
+        } else {
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         stopTimer()
         stopWaveAnimation()
+        stopEmergencyPulseAnimation()
+        stopEmergencyVibration()
         resultDismissRunnable?.let { resultHandler.removeCallbacks(it) }
     }
 }

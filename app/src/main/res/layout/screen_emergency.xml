@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/emergency_bg">
+
+    <!-- Pulsing red overlay — alpha animated 0.0→0.4 repeatedly via ObjectAnimator -->
+    <View
+        android:id="@+id/viewEmergencyPulse"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/emergency_pulse"
+        android:alpha="0.0" />
+
+    <!-- Center content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp">
+
+        <!-- Event icon — set dynamically in MainActivity from SoundEvent.icon -->
+        <TextView
+            android:id="@+id/tvEmergencyIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠"
+            android:textSize="80sp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EMERGENCY"
+            android:textSize="42sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.06"
+            android:textColor="@color/emergency_text" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="6dp" />
+
+        <!-- Event label e.g. "BABY CRYING DETECTED" -->
+        <TextView
+            android:id="@+id/tvEmergencySoundType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EMERGENCY SOUND DETECTED"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.06"
+            android:textAllCaps="true"
+            android:textColor="@color/emergency_text" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="52dp" />
+
+        <FrameLayout
+            android:id="@+id/btnEmergencyDismiss"
+            android:layout_width="200dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_emergency_dismiss_btn"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="DISMISS"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.14"
+                android:textColor="@color/emergency_bg" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <!-- Nav bar pill (consistent with other screens) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="120dp"
+            android:layout_height="4dp"
+            android:background="@drawable/bg_nav_bar_pill" />
+
+    </LinearLayout>
+
+</FrameLayout>

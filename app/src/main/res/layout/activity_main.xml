@@ -20,4 +20,8 @@
         android:id="@+id/result"
         layout="@layout/screen_result" />
 
+    <include
+        android:id="@+id/emergency"
+        layout="@layout/screen_emergency" />
+
 </FrameLayout>

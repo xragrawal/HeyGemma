@@ -8,15 +8,18 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 sealed class LoadState {
     data object Idle       : LoadState()
@@ -32,6 +35,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { TelegramRepository.init(app) }
         TtsManager.init(app)
         ProfilePrefs.init(app)
+        viewModelScope.launch {
+            val err = withContext(Dispatchers.IO) { SoundClassifier.load(app) }
+            if (err != null) Log.e("ChatViewModel", err)
+        }
     }
 
     private val _messages    = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -62,6 +69,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _isListeningForWakeWord = MutableStateFlow(false)
     val isListeningForWakeWord: StateFlow<Boolean> = _isListeningForWakeWord.asStateFlow()
+
+    private val _emergencyAlert = MutableStateFlow<SoundClassifier.SoundEvent?>(null)
+    val emergencyAlert: StateFlow<SoundClassifier.SoundEvent?> = _emergencyAlert.asStateFlow()
 
     private val _ttsEnabled = MutableStateFlow(true)
     val ttsEnabled: StateFlow<Boolean> = _ttsEnabled.asStateFlow()
@@ -130,6 +140,17 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         )
 
         _isListeningForWakeWord.value = success
+
+        if (success) {
+            SoundClassifier.startListening { event ->
+                Handler(Looper.getMainLooper()).post { _emergencyAlert.value = event }
+            }
+        }
+    }
+
+    fun dismissEmergencyAlert() {
+        _emergencyAlert.value = null
+        startWakeWordListening()
     }
 
     private fun triggerEmergencyCountFeedback(current: Int, required: Int) {
@@ -160,6 +181,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun stopWakeWordListening() {
         WakeWordEngine.stopListening()
+        SoundClassifier.stopListening()
         _isListeningForWakeWord.value = false
     }
 
@@ -270,6 +292,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         super.onCleared()
         audioRecorder.stopRecording()
         stopWakeWordListening()
+        SoundClassifier.release()
         TtsManager.shutdown()
         viewModelScope.launch {
             LlamaEngine.release()

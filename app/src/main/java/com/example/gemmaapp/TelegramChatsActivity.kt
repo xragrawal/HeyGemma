@@ -161,7 +161,9 @@ class TelegramChatsActivity : AppCompatActivity() {
                 }
                 if (shouldRead) {
                     vibrateNotification()
-                    TtsManager.speak("Message from ${msg.senderName}: ${msg.text}")
+                    // TTS plays immediately; extraction is queued and runs serially in background
+                    launch { TtsManager.speak("Message from ${msg.senderName}: ${msg.text}") }
+                    TelegramActionExtractor.enqueue(msg.text, this@TelegramChatsActivity)
                 }
             }
         }

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Foreground for the HeyGemma adaptive icon.
+  Viewport 108×108 — safe zone is the inner 72×72 (18dp inset on each side).
+  Design: white microphone capsule + purple sound-wave arcs.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Microphone capsule (fully rounded = capsule shape) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="
+          M54,28
+          a 10,10 0 0 1 10,10
+          v 30
+          a 10,10 0 0 1 -20,0
+          v -30
+          a 10,10 0 0 1 10,-10
+          z" />
+
+    <!-- Stand -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M54,78 L54,88" />
+
+    <!-- Base -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M42,88 L66,88" />
+
+    <!-- Left inner arc (vibrant purple) -->
+    <path
+        android:strokeColor="#A855F7"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M36,45 Q26,54 26,63 Q26,72 36,81" />
+
+    <!-- Left outer arc (lighter purple) -->
+    <path
+        android:strokeColor="#C084FC"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M29,39 Q14,52 14,63 Q14,74 29,87" />
+
+    <!-- Right inner arc (vibrant purple) -->
+    <path
+        android:strokeColor="#A855F7"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M72,45 Q82,54 82,63 Q82,72 72,81" />
+
+    <!-- Right outer arc (lighter purple) -->
+    <path
+        android:strokeColor="#C084FC"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M79,39 Q94,52 94,63 Q94,74 79,87" />
+
+</vector>

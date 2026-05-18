@@ -2,6 +2,8 @@ package com.example.gemmaapp
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
@@ -64,20 +66,30 @@ object LlamaEngine {
         temperature: Float = 0.7f,
         topP: Float = 0.9f,
         onToken: (String) -> Unit
-    ): String? = withContext(Dispatchers.IO) {
-        nativeGenerate(prompt, maxTokens, temperature, topP, onToken)
+    ): String? = generationMutex.withLock {
+        // Re-check after acquiring lock — model may have been released while we waited
+        if (!isLoaded) return@withLock null
+        withContext(Dispatchers.IO) {
+            nativeGenerate(prompt, maxTokens, temperature, topP, onToken)
+        }
     }
 
     var isLoaded: Boolean = false
         private set
 
+    // Serializes all generate() calls app-wide — chat responses and background
+    // extraction never run concurrently; whichever acquires this first completes fully.
+    val generationMutex = Mutex()
+
     /** Interrupt a running generation. Safe to call from any thread. */
     fun stop() = nativeStop()
 
-    /** Free model memory. Call from onDestroy / when model is no longer needed. */
-    suspend fun release() = withContext(Dispatchers.IO) {
-        nativeRelease()
-        isLoaded = false
+    /** Free model memory. Waits for any in-progress generation to complete first. */
+    suspend fun release() = generationMutex.withLock {
+        withContext(Dispatchers.IO) {
+            nativeRelease()
+            isLoaded = false
+        }
     }
 
     // ── Prompt formatting ─────────────────────────────────────────────────────

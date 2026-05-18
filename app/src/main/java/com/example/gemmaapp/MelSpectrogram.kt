@@ -1,6 +1,7 @@
 package com.example.gemmaapp
 
 import kotlin.math.cos
+import kotlin.math.ln
 import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.sin
@@ -18,6 +19,143 @@ object MelSpectrogram {
     private const val HOP_LENGTH = 160 // 10ms stride at 16kHz
     private const val N_MELS = 80
     private const val TARGET_FRAMES = 3000 // 30 seconds
+
+    /**
+     * Computes log-mel features without Whisper normalization, returning a flat array
+     * laid out as [80, nFrames] where nFrames = (samples.size - N_FFT) / HOP_LENGTH + 1
+     * clamped to TARGET_FRAMES.  Used by SoundClassifier — the caller transposes to [T, 80].
+     */
+    fun computeForClassifier(samples: ShortArray): FloatArray {
+        val audio = FloatArray(samples.size) { samples[it] / 32768.0f }
+        val numFrames = (audio.size - N_FFT) / HOP_LENGTH + 1
+        val framesToProcess = minOf(numFrames, TARGET_FRAMES)
+        val window = hanningWindow(N_FFT)
+        val melFilters = computeMelFilters()
+        val output = FloatArray(N_MELS * TARGET_FRAMES)
+
+        for (i in 0 until framesToProcess) {
+            val start = i * HOP_LENGTH
+            val frame = FloatArray(N_FFT)
+            for (j in 0 until N_FFT) frame[j] = audio[start + j] * window[j]
+            val paddedFrame = FloatArray(512)
+            System.arraycopy(frame, 0, paddedFrame, 0, N_FFT)
+            val magnitudes = computeMagnitudeSpectrum(paddedFrame)
+            for (m in 0 until N_MELS) {
+                var energy = 0.0f
+                for (k in 0 until (512 / 2 + 1)) energy += melFilters[m][k] * magnitudes[k]
+                output[m * TARGET_FRAMES + i] = log10(maxOf(energy, 1e-10f))
+            }
+        }
+
+        // Per-utterance mean subtraction: makes the classifier robust to DC offset / mic gain
+        var sum = 0.0f
+        var count = 0
+        for (t in 0 until framesToProcess) {
+            for (m in 0 until N_MELS) { sum += output[m * TARGET_FRAMES + t]; count++ }
+        }
+        val mean = if (count > 0) sum / count else 0f
+        for (i in output.indices) output[i] -= mean
+
+        return output
+    }
+
+    /**
+     * Kaldi-style log-mel filterbank features matching sherpa-onnx's kaldi-native-fbank pipeline:
+     *   - Preemphasis α=0.97
+     *   - Povey window (standard for Kaldi ASR/audio-tagging models)
+     *   - 80 mel bins, low_freq=20 Hz, Slaney/HTK mel scale
+     *   - Natural log (not log10) with energy floor 1e-10
+     *   - Per-utterance mean normalisation (CMVN approximation)
+     *
+     * Returns flat [80 × nFrames] in [mel_bin, frame] layout (same as computeForClassifier).
+     * SoundClassifier transposes to [nFrames, 80] before feeding the ONNX model.
+     */
+    fun computeKaldiFbank(samples: ShortArray): FloatArray {
+        val raw = FloatArray(samples.size) { samples[it] / 32768.0f }
+
+        // Preemphasis: x'[n] = x[n] - 0.97 * x[n-1]
+        val audio = FloatArray(raw.size)
+        audio[0] = raw[0]
+        for (i in 1 until raw.size) audio[i] = raw[i] - 0.97f * raw[i - 1]
+
+        val numFrames = (audio.size - N_FFT) / HOP_LENGTH + 1
+        val framesToProcess = minOf(numFrames, TARGET_FRAMES)
+
+        // Povey window: pow(0.5 - 0.5*cos(2π*n/(N-1)), 0.85)
+        val window = FloatArray(N_FFT) { n ->
+            (0.5 - 0.5 * cos(2.0 * Math.PI * n / (N_FFT - 1))).pow(0.85).toFloat()
+        }
+
+        val melFilters = computeKaldiMelFilters()
+        val output = FloatArray(N_MELS * TARGET_FRAMES)
+
+        for (i in 0 until framesToProcess) {
+            val start = i * HOP_LENGTH
+            val paddedFrame = FloatArray(512)
+            val end = minOf(start + N_FFT, audio.size)
+            for (j in start until end) paddedFrame[j - start] = audio[j] * window[j - start]
+
+            val magnitudes = computeMagnitudeSpectrum(paddedFrame)
+
+            for (m in 0 until N_MELS) {
+                var energy = 0.0f
+                for (k in melFilters[m].indices) energy += melFilters[m][k] * magnitudes[k]
+                // Natural log, matching kaldi-native-fbank
+                output[m * TARGET_FRAMES + i] = ln(maxOf(energy, 1e-10f))
+            }
+        }
+
+        // Per-utterance mean subtraction (CMVN approximation)
+        var sum = 0.0f
+        var n = 0
+        for (t in 0 until framesToProcess) {
+            for (m in 0 until N_MELS) { sum += output[m * TARGET_FRAMES + t]; n++ }
+        }
+        val mean = if (n > 0) sum / n else 0f
+        for (i in output.indices) output[i] -= mean
+
+        return output
+    }
+
+    // Slaney/Kaldi mel filterbank with low_freq=20 Hz (matches kaldi-native-fbank defaults)
+    private fun computeKaldiMelFilters(): Array<FloatArray> {
+        val lowFreq  = 20.0
+        val highFreq = SAMPLE_RATE / 2.0
+        val numFftBins = 512 / 2 + 1
+
+        fun hzToMelSlaney(hz: Double): Double = when {
+            hz < 1000.0 -> hz / 1000.0 * 15.0
+            else        -> 15.0 + ln(hz / 1000.0) / ln(6.4) * 27.0
+        }
+        fun melToHzSlaney(mel: Double): Double = when {
+            mel < 15.0  -> mel / 15.0 * 1000.0
+            else        -> 1000.0 * (6.4.pow((mel - 15.0) / 27.0))
+        }
+
+        val melLow  = hzToMelSlaney(lowFreq)
+        val melHigh = hzToMelSlaney(highFreq)
+        val melPoints = DoubleArray(N_MELS + 2) { i ->
+            melLow + i * (melHigh - melLow) / (N_MELS + 1)
+        }
+        val hzPoints = DoubleArray(melPoints.size) { melToHzSlaney(melPoints[it]) }
+        val binPoints = IntArray(hzPoints.size) { i ->
+            Math.floor((512 + 1) * hzPoints[i] / SAMPLE_RATE).toInt().coerceIn(0, numFftBins - 1)
+        }
+
+        val filters = Array(N_MELS) { FloatArray(numFftBins) }
+        for (i in 0 until N_MELS) {
+            val left   = binPoints[i]
+            val center = binPoints[i + 1]
+            val right  = binPoints[i + 2]
+            for (j in left until center) {
+                if (center > left) filters[i][j] = (j - left).toFloat() / (center - left)
+            }
+            for (j in center until right) {
+                if (right > center) filters[i][j] = (right - j).toFloat() / (right - center)
+            }
+        }
+        return filters
+    }
 
     /**
      * Computes the mel spectrogram and returns a flattened float array of shape [1, 80, 3000].

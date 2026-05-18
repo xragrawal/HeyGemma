@@ -120,6 +120,7 @@ object WakeWordEngine {
                 if (read > 0) {
                     frameCount++
                     if (frameCount % 50 == 0) Log.d(TAG, "Frames=$frameCount")
+                    SoundClassifier.feedAudio(buffer, read)
                     if (recognizer.acceptWaveForm(buffer, read)) {
                         checkResult(recognizer.result)
                     } else {

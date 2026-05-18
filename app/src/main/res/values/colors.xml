@@ -37,4 +37,10 @@
 
     <!-- Dock fade bg -->
     <color name="gemma_bg_fade">#E60A0A0A</color>
+
+    <!-- Emergency alert screen -->
+    <color name="emergency_bg">#1A0000</color>
+    <color name="emergency_pulse">#CC0000</color>
+    <color name="emergency_text">#FFFFFF</color>
+    <color name="emergency_subtext">#FFAAAA</color>
 </resources>
