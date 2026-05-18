@@ -14,10 +14,14 @@ HeyGemma combines a conversational AI assistant with a life-safety emergency ale
 - **Multi-agent routing** — automatically delegates your request to the right agent: general conversation, notes/todos, or Telegram messaging
 - **Emergency alert** — say your custom keyword 3× in a row → GPS coordinates are sent to your emergency contact via Telegram instantly
 - **Wake-word always listening** — Vosk runs continuously in the background waiting for "Hey Gemma" or your emergency phrase
+- **Ambient sound detection** — always-on ONNX classifier detects emergency sounds (fire alarm, ambulance siren, baby crying, glass breaking) and triggers alerts automatically
+- **Telegram action extraction** — incoming Telegram messages are parsed by Gemma to extract and execute todo actions automatically
 
 ---
 
 ## Demo
+
+📹 **[Watch demo v3](Demo/HeyGemma_demo_v3.mp4)**
 
 > *Say "Hey Gemma, send a message to Jayesh saying I'm running late"*
 > → Gemma classifies intent → resolves contact → sends Telegram message → speaks confirmation
@@ -31,6 +35,9 @@ HeyGemma combines a conversational AI assistant with a life-safety emergency ale
 > Need urgent help
 > ```
 
+> *Fire alarm goes off in the room*
+> → SoundClassifier detects "Fire Alarm" → emergency screen shown → Telegram alert sent automatically
+
 ---
 
 ## Features
@@ -41,42 +48,51 @@ HeyGemma combines a conversational AI assistant with a life-safety emergency ale
 | **Voice transcription** | Whisper Small ONNX — 16kHz mono PCM → text |
 | **Wake word** | Vosk offline model — "Hey Gemma" + custom emergency keyword |
 | **Emergency alerts** | GPS + Telegram message, 3× keyword trigger, 60s anti-spam |
+| **Sound detection** | Always-on ONNX classifier — 527 AudioSet classes; alerts on fire alarm, siren, baby crying, glass break |
 | **Telegram agent** | Send messages to contacts via voice command |
+| **Telegram action extraction** | Incoming messages parsed by Gemma to auto-execute todo actions |
 | **Notes & Todos** | Voice-driven task management, persisted in SQLite |
 | **Text-to-speech** | ElevenLabs (premium) or Android TTS (fallback) |
 | **Onboarding** | Profile setup: name, emergency keyword, emergency contact |
+| **Emergency screen** | Full-screen alert UI shown on sound/keyword trigger |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   MainActivity                   │
-│  HOME → LISTENING → PROCESSING → RESULT screens │
-└──────────────────┬──────────────────────────────┘
-                   │
-          ┌────────▼────────┐
-          │  ChatViewModel   │   StateFlows: messages, loadState,
-          │  (MVVM core)     │   isRecording, currentTranscript
-          └────┬───┬───┬────┘
+┌──────────────────────────────────────────────────────────┐
+│                      MainActivity                         │
+│  HOME → LISTENING → PROCESSING → RESULT → EMERGENCY      │
+└────────────────────┬─────────────────────────────────────┘
+                     │
+            ┌────────▼────────┐
+            │  ChatViewModel   │   StateFlows: messages, loadState,
+            │  (MVVM core)     │   isRecording, currentTranscript
+            └──┬───┬───┬──────┘
                │   │   │
     ┌──────────┘   │   └──────────────┐
     ▼              ▼                  ▼
-LlamaEngine   WhisperEngine     WakeWordEngine
-(Gemma 4 JNI) (ONNX Runtime)   (Vosk + counter)
-                                      │
-                              "emergency" keyword
-                                      ▼
-                             EmergencyManager
-                           (GPS + Telegram alert)
+LlamaEngine   WhisperEngine     WakeWordEngine ──── feedAudio() ────┐
+(Gemma 4 JNI) (ONNX Runtime)   (Vosk + counter)                    ▼
+                                      │                     SoundClassifier
+                              "emergency" keyword          (ONNX AudioSet 527)
+                                      │                    fire/siren/baby/glass
+                                      └──────────┬─────────────────┘
+                                                 ▼
+                                        EmergencyManager
+                                      (GPS + Telegram alert)
                │
                ▼
         AgentOrchestrator
         ┌──────┬──────┬──────┐
-        ▼      ▼      ▼      
+        ▼      ▼      ▼
      DIRECT   TODO  TELEGRAM
      (Gemma) (Room) (Bot API)
+                       │
+              TelegramActionExtractor
+              (auto-execute todos from
+               incoming TG messages)
 ```
 
 ### Key classes
@@ -86,9 +102,11 @@ LlamaEngine   WhisperEngine     WakeWordEngine
 | `ChatViewModel` | Central state; owns all engines, manages model loading and message flow |
 | `LlamaEngine` | Kotlin JNI wrapper around llama.cpp; streams tokens via callback |
 | `WhisperEngine` | ONNX encoder-decoder loop; PCM audio → text transcript |
-| `WakeWordEngine` | Vosk streaming recognition; rolling 8s time-window counter for emergency |
+| `WakeWordEngine` | Vosk streaming recognition; rolling 8s time-window counter for emergency; feeds audio to SoundClassifier |
+| `SoundClassifier` | Always-on ONNX model (527 AudioSet classes); detects fire alarms, sirens, baby crying, glass breaking; shares mic session with WakeWordEngine |
 | `AgentOrchestrator` | Fast keyword classifier + LLM fallback; routes to TODO / TELEGRAM / DIRECT |
-| `EmergencyManager` | GPS fetch (5s timeout) → Telegram alert with anti-spam cooldown |
+| `TelegramActionExtractor` | Parses incoming Telegram messages via Gemma; auto-executes add/cancel todo actions asynchronously |
+| `EmergencyManager` | GPS fetch (5s timeout) → Telegram alert with 60s anti-spam cooldown |
 | `ProfilePrefs` | SharedPreferences wrapper: name, keyword, repeat count, emergency contact |
 | `TelegramApi` | OkHttp3 client: getMe, getUpdates, sendMessage, getChat |
 | `TelegramRepository` | Room DB + in-memory cache for contacts and message threads |
@@ -100,7 +118,7 @@ LlamaEngine   WhisperEngine     WakeWordEngine
 ## Tech Stack
 
 - **Language:** Kotlin + C++ (JNI)
-- **AI inference:** [llama.cpp](https://github.com/ggerganov/llama.cpp) (git submodule), ONNX Runtime, Vosk Android
+- **AI inference:** [llama.cpp](https://github.com/ggerganov/llama.cpp) (git submodule), ONNX Runtime (Whisper + SoundClassifier), Vosk Android
 - **Architecture:** MVVM, Kotlin Coroutines, StateFlow
 - **Database:** Room (SQLite) — todos, Telegram messages, contacts
 - **Networking:** OkHttp3 (Telegram Bot API)
@@ -251,23 +269,31 @@ HeyGemma/
 │   │   │   ├── CMakeLists.txt          # Native build config
 │   │   │   ├── llama_jni.cpp           # JNI bridge to llama.cpp
 │   │   │   └── llama.cpp/              # llama.cpp submodule
+│   │   ├── assets/
+│   │   │   ├── sound_classifier.onnx          # AudioSet 527-class sound model
+│   │   │   └── sound_classifier_labels.txt    # Class index → label mapping
 │   │   ├── java/com/example/gemmaapp/
 │   │   │   ├── MainActivity.kt
 │   │   │   ├── ChatViewModel.kt
 │   │   │   ├── LlamaEngine.kt
 │   │   │   ├── WhisperEngine.kt
 │   │   │   ├── WakeWordEngine.kt
+│   │   │   ├── SoundClassifier.kt             # Ambient sound detection
 │   │   │   ├── AgentOrchestrator.kt
-│   │   │   ├── EmergencyManager.kt     # Emergency alert
-│   │   │   ├── ProfilePrefs.kt         # User profile storage
-│   │   │   ├── UserProfileActivity.kt  # Onboarding + settings
+│   │   │   ├── TelegramActionExtractor.kt     # Auto todo extraction from TG
+│   │   │   ├── EmergencyManager.kt            # Emergency alert
+│   │   │   ├── ProfilePrefs.kt                # User profile storage
+│   │   │   ├── UserProfileActivity.kt         # Onboarding + settings
 │   │   │   ├── TelegramApi.kt
 │   │   │   ├── TelegramRepository.kt
 │   │   │   └── ...
 │   │   └── res/
-│   │       ├── layout/                 # screen_home, screen_listening, etc.
+│   │       ├── layout/                 # screen_home, screen_listening, screen_emergency, etc.
 │   │       └── drawable/
 │   └── build.gradle.kts
+├── Demo/
+│   └── HeyGemma_demo_v3.mp4           # Latest demo video
+├── supporting-data-images-audio/       # Icons and audio clips for context
 ├── backlog.md                          # Known issues + P2 items
 ├── setup.sh                            # One-time bootstrap script
 └── README.md
