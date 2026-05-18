@@ -118,7 +118,12 @@ LlamaEngine   WhisperEngine     WakeWordEngine ──── feedAudio() ──�
 ## Tech Stack
 
 - **Language:** Kotlin + C++ (JNI)
-- **AI inference:** [llama.cpp](https://github.com/ggerganov/llama.cpp) (git submodule), ONNX Runtime (Whisper + SoundClassifier), Vosk Android
+- **AI Models:**
+  - 🧠 **Gemma 4 2B** (Google) — on-device LLM for conversation, intent classification, agent routing; runs via llama.cpp JNI with Q4_K_M quantisation (~1.5 GB)
+  - 🎙️ **Whisper Small** (OpenAI) — speech-to-text transcription; encoder-decoder ONNX inference at 16kHz mono PCM
+  - 👂 **Vosk** (Alpha Cephei) — offline wake-word detection ("Hey Gemma") and custom emergency keyword recognition; streams 16kHz audio with rolling 8s window
+  - 🔊 **YAMNet / AudioSet** — ambient sound classifier (527 classes); detects fire alarms, sirens, baby crying, glass breaking; bundled as ONNX asset
+- **AI inference runtime:** [llama.cpp](https://github.com/ggerganov/llama.cpp) (git submodule), ONNX Runtime, Vosk Android
 - **Architecture:** MVVM, Kotlin Coroutines, StateFlow
 - **Database:** Room (SQLite) — todos, Telegram messages, contacts
 - **Networking:** OkHttp3 (Telegram Bot API)
