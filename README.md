@@ -21,7 +21,11 @@ HeyGemma combines a conversational AI assistant with a life-safety emergency ale
 
 ## Demo
 
+### Idea Pitch
 https://github.com/user-attachments/assets/bcbb7c36-4067-4303-a6c1-f72a151fe831
+
+### Full Demo
+https://github.com/user-attachments/assets/40f92886-07b0-4042-b7d4-6feea269e01e
 
 > *Say "Hey Gemma, send a message to Jayesh saying I'm running late"*
 > → Gemma classifies intent → resolves contact → sends Telegram message → speaks confirmation
